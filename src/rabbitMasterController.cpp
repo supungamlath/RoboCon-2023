@@ -5,10 +5,10 @@
 #include "esp_gap_bt_api.h"
 #include "esp_err.h"
 
-const int FdFrontLeft = 2;
-const int BkFrontLeft = 23;
+const int ArmServoPin = 2;
+const int WristServoPin = 23;
 
-const int FdBackLeft = 25;
+const int GripServoPin = 25;
 const int BkBackLeft = 26;
 
 const int FdFrontRight = 32;
@@ -23,11 +23,12 @@ bool isPS4Connected = false;
 
 int x = 0, y = 0, z = 0;
 int m1_pow = 0, m2_pow = 0, m3_pow = 0, m4_pow = 0;
+long data_rate = 20, prev_time = 0, current_time = 0;
 
 void onConnect()
 // when connected ps4
 {
-  Serial.println("Connected!.");
+  Serial.println("Connected !");
   uint8_t pairedDeviceBtAddr[20][6];
   int count = esp_bt_gap_get_bond_device_num();
   esp_bt_gap_get_bond_device_list(&count, pairedDeviceBtAddr);
@@ -44,9 +45,9 @@ void onConnect()
 
 void setup()
 {
-  pinMode(FdFrontLeft, OUTPUT);
-  pinMode(BkFrontLeft, OUTPUT);
-  pinMode(FdBackLeft, OUTPUT);
+  pinMode(ArmServoPin, OUTPUT);
+  pinMode(WristServoPin, OUTPUT);
+  pinMode(GripServoPin, OUTPUT);
   pinMode(BkBackLeft, OUTPUT);
   pinMode(FdFrontRight, OUTPUT);
   pinMode(BkFrontRight, OUTPUT);
@@ -54,6 +55,7 @@ void setup()
   pinMode(BkBackRight, OUTPUT);
   // Print the Bluetooth MAC address
   Serial.begin(115200);
+  Serial2.begin(115200);
   // PS4.begin("d0:bc:c1:3b:2e:99");
   PS4.begin();
   const uint8_t *address = esp_bt_dev_get_address();
@@ -66,6 +68,7 @@ void setup()
 
 void CalculateMotorSpeeds();
 void SetMotorSpeeds();
+void SendValuesToArm();
 
 void loop()
 {
@@ -73,50 +76,32 @@ void loop()
   {
     y = PS4.RStickY();
     x = PS4.RStickX();
-    z = PS4.LStickX();
+    // z = PS4.LStickX();
 
     y = (y < -deadzone ? y : (y > deadzone ? y : 0));
     x = (x < -deadzone ? x : (x > deadzone ? x : 0));
-    z = (z < -deadzone ? z : (z > deadzone ? z : 0));
-
-    // Serial.print("x = ");
-    // Serial.print(x);
-    // Serial.print("   ");
-    // Serial.print("y = ");
-    // Serial.print(y);
-    // Serial.print("   ");
-    // Serial.print("z = ");
-    // Serial.println(z);
+    // z = (z < -deadzone ? z : (z > deadzone ? z : 0));
 
     CalculateMotorSpeeds();
     SetMotorSpeeds();
 
-    // Serial.print("m1pow = ");
-    // Serial.print(m1_pow);
-    // Serial.print("   ");
-    // Serial.print("m2pow = ");
-    // Serial.print(m2_pow);
-    // Serial.print("   ");
-    // Serial.print("m3pow = ");
-    // Serial.print(m3_pow);
-    // Serial.print("   ");
-    // Serial.print("m4pow = ");
-    // Serial.println(m4_pow);
+    current_time = millis();
+    if (current_time - prev_time > data_rate)
+    {
+      SendValuesToArm();
+      prev_time = current_time;
+    }
   }
   else
   {
-    Serial.println("PS4 not connected");
+    Serial.println("PS4 Controller not connected");
     delay(1000);
   }
 }
 
 void CalculateMotorSpeeds()
 {
-  // should be multiplied by 2 for full power utilization
-  // m1_pow = (y - x - z);
-  // m2_pow = (y + x - z);
-  // m3_pow = (y + x + z);
-  // m4_pow = (y - x + z);
+  // Should be multiplied by 2 for full power utilization
   m1_pow = 2 * (y + x);
   m2_pow = 2 * (y - x);
   m3_pow = 2 * (y - x);
@@ -131,33 +116,33 @@ void SetMotorSpeeds()
 {
   if (m1_pow > 0) // forward
   {
-    analogWrite(FdFrontLeft, m1_pow);
-    analogWrite(BkFrontLeft, LOW);
+    analogWrite(ArmServoPin, m1_pow);
+    analogWrite(WristServoPin, LOW);
   }
   else if (m1_pow < 0) // backward
   {
-    analogWrite(BkFrontLeft, -m1_pow);
-    analogWrite(FdFrontLeft, LOW);
+    analogWrite(WristServoPin, -m1_pow);
+    analogWrite(ArmServoPin, LOW);
   }
   else
   {
-    analogWrite(FdFrontLeft, HIGH);
-    analogWrite(BkFrontLeft, HIGH);
+    analogWrite(ArmServoPin, HIGH);
+    analogWrite(WristServoPin, HIGH);
   }
 
   if (m2_pow > 0) // forward
   {
-    analogWrite(FdBackLeft, m2_pow);
+    analogWrite(GripServoPin, m2_pow);
     analogWrite(BkBackLeft, LOW);
   }
   else if (m2_pow < 0) // backward
   {
     analogWrite(BkBackLeft, -m2_pow);
-    analogWrite(FdBackLeft, LOW);
+    analogWrite(GripServoPin, LOW);
   }
   else
   {
-    analogWrite(FdBackLeft, HIGH);
+    analogWrite(GripServoPin, HIGH);
     analogWrite(BkBackLeft, HIGH);
   }
 
@@ -192,4 +177,13 @@ void SetMotorSpeeds()
     analogWrite(FdBackRight, HIGH);
     analogWrite(BkBackRight, HIGH);
   }
+}
+
+void SendValuesToArm()
+{
+  char ack = 6;
+  Serial2.print(ack);
+  Serial2.println(PS4.L2Value());
+  Serial2.println(PS4.R2Value());
+  Serial2.println(PS4.LStickY());
 }

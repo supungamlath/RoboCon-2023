@@ -10,6 +10,9 @@
             "includePath": [
                 "C:/Users/supun/OneDrive/Documents/PlatformIO/Projects/RoboCon-2023-Rabbit/include",
                 "C:/Users/supun/OneDrive/Documents/PlatformIO/Projects/RoboCon-2023-Rabbit/src",
+                "C:/Users/supun/OneDrive/Documents/PlatformIO/Projects/RoboCon-2023-Rabbit/lib/PS4-esp32/src",
+                "C:/Users/supun/OneDrive/Documents/PlatformIO/Projects/RoboCon-2023-Rabbit/.pio/libdeps/rabbit-master-controller/AccelStepperWithDistances/src",
+                "C:/Users/supun/OneDrive/Documents/PlatformIO/Projects/RoboCon-2023-Rabbit/.pio/libdeps/rabbit-master-controller/AccelStepper/src",
                 "C:/Users/supun/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/newlib/platform_include",
                 "C:/Users/supun/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include",
                 "C:/Users/supun/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include/esp_additions/freertos",
@@ -241,6 +244,9 @@
                 "path": [
                     "C:/Users/supun/OneDrive/Documents/PlatformIO/Projects/RoboCon-2023-Rabbit/include",
                     "C:/Users/supun/OneDrive/Documents/PlatformIO/Projects/RoboCon-2023-Rabbit/src",
+                    "C:/Users/supun/OneDrive/Documents/PlatformIO/Projects/RoboCon-2023-Rabbit/lib/PS4-esp32/src",
+                    "C:/Users/supun/OneDrive/Documents/PlatformIO/Projects/RoboCon-2023-Rabbit/.pio/libdeps/rabbit-master-controller/AccelStepperWithDistances/src",
+                    "C:/Users/supun/OneDrive/Documents/PlatformIO/Projects/RoboCon-2023-Rabbit/.pio/libdeps/rabbit-master-controller/AccelStepper/src",
                     "C:/Users/supun/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/newlib/platform_include",
                     "C:/Users/supun/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include",
                     "C:/Users/supun/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/freertos/include/esp_additions/freertos",

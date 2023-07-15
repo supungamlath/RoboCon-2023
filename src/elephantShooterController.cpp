@@ -84,9 +84,9 @@ void readValues()
 {
     if (Serial2.read() == 6)
     {
+        l_stick_Y = Serial2.parseInt();
         l_2 = Serial2.parseInt();
         r_2 = Serial2.parseInt();
-        l_stick_Y = Serial2.parseInt();
         left = Serial2.parseInt();
         right = Serial2.parseInt();
     }
@@ -94,24 +94,26 @@ void readValues()
 
 void calculateValues()
 {
-    // Serial.print("l_2: ");
-    // Serial.print(l_2);
-    // Serial.print("   r_2: ");
-    // Serial.print(r_2);
-    // Serial.print("   l_stick_Y: ");
-    // Serial.print(l_stick_Y);
-    // Serial.print("  Position");
-    // Serial.print(stack_position);
-    // Serial.print("   left: ");
-    // Serial.print(left);
-    // Serial.print("   right: ");
-    // Serial.println(right);
+    Serial.print("l_2: ");
+    Serial.print(l_2);
+    Serial.print("   r_2: ");
+    Serial.print(r_2);
+    Serial.print("   l_stick_Y: ");
+    Serial.print(l_stick_Y);
+    Serial.print("  Position ");
+    Serial.print(stack_position);
+    Serial.print("   left: ");
+    Serial.print(left);
+    Serial.print("   right: ");
+    Serial.println(right);
+    Serial.print("   Shooter: ");
+    Serial.print(shooter_motor_val);
 
     // set shooter value
-    if (abs(l_2 > 0))
-        shooter_motor_val = 0.5 * abs(l_2);
-    else if (abs(r_2 < 0))
-        shooter_motor_val = 0.5 * abs(r_2);
+    if (abs(l_2) > 0)
+        shooter_motor_val = abs(l_2);
+    else if (abs(r_2) > 0)
+        shooter_motor_val = abs(r_2);
     else
         shooter_motor_val = 0;
 
@@ -154,7 +156,7 @@ void driveMotors()
     // Stack Motor
     if (stack_motor_val != 0)
     {
-        stack_stepper.moveToDistance(stack_position);
+        stack_stepper.moveRelative(stack_motor_val);
         stack_stepper.run();
     }
 

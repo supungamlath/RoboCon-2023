@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <ESP32Servo.h>
-#include <VarSpeedServo.h>
 
 const int ArmServoPin = 19;
 const int WristServoPin = 18;
@@ -12,8 +11,7 @@ const int LimitSwitchBottomPin = 26;
 
 int l_2 = 0, r_2 = 0, l_stick_Y = 0, up_btn = 0, down_btn = 0;
 int arm_motor = 0, arm_servo_val, wrist_servo_val = 0, grip_servo_val = 0;
-int servo_speed = 100;
-VarSpeedServo arm_servo, wrist_servo, grip_servo;
+Servo arm_servo, wrist_servo, grip_servo;
 
 void readValues();
 void calculateValues();
@@ -34,13 +32,19 @@ void setup()
 
   Serial.begin(115200);
   Serial2.begin(115200);
+
+  analogWrite(ArmUpPin, arm_motor);
+  analogWrite(ArmDownPin, LOW);
+  delay(1000);
+  analogWrite(ArmUpPin, LOW);
+  analogWrite(ArmDownPin, LOW);
 }
 
 void loop()
 {
-  readValues();      // Get values from Master ESP32
-  calculateValues(); // Calculate direction and PWM of each motor
-  driveMotors();     // Driver each motor
+  // readValues();      // Get values from Master ESP32
+  // calculateValues(); // Calculate direction and PWM of each motor
+  // driveMotors();     // Driver each motor
 }
 
 void readValues()
@@ -83,22 +87,22 @@ void calculateValues()
 
 void driveMotors()
 {
-  arm_servo.write(arm_servo_val, servo_speed, false);
-  wrist_servo.write(wrist_servo_val, servo_speed, false);
-  grip_servo.write(grip_servo_val, servo_speed, false);
-  if (arm_motor > 0 and digitalRead(LimitSwitchTopPin) == LOW)
-  {
-    analogWrite(ArmUpPin, arm_motor);
-    analogWrite(ArmDownPin, LOW);
-  }
-  else if (arm_motor < 0 and digitalRead(LimitSwitchBottomPin) == LOW)
-  {
-    analogWrite(ArmUpPin, LOW);
-    analogWrite(ArmDownPin, -arm_motor);
-  }
-  else
-  {
-    analogWrite(ArmUpPin, LOW);
-    analogWrite(ArmDownPin, LOW);
-  }
+  // arm_servo.write(arm_servo_val);
+  // wrist_servo.write(wrist_servo_val);
+  // grip_servo.write(grip_servo_val);
+  // if (arm_motor > 0 and digitalRead(LimitSwitchTopPin) == LOW)
+  // {
+  //   analogWrite(ArmUpPin, arm_motor);
+  //   analogWrite(ArmDownPin, LOW);
+  // }
+  // else if (arm_motor < 0 and digitalRead(LimitSwitchBottomPin) == LOW)
+  // {
+  //   analogWrite(ArmUpPin, LOW);
+  //   analogWrite(ArmDownPin, -arm_motor);
+  // }
+  // else
+  // {
+  //   analogWrite(ArmUpPin, LOW);
+  //   analogWrite(ArmDownPin, LOW);
+  // }
 }

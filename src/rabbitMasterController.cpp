@@ -76,11 +76,9 @@ void loop()
   {
     y = PS4.RStickY();
     x = PS4.RStickX();
-    // z = PS4.LStickX();
 
     y = (y < -deadzone ? y : (y > deadzone ? y : 0));
     x = (x < -deadzone ? x : (x > deadzone ? x : 0));
-    // z = (z < -deadzone ? z : (z > deadzone ? z : 0));
 
     CalculateMotorSpeeds();
     SetMotorSpeeds();
@@ -102,14 +100,24 @@ void loop()
 void CalculateMotorSpeeds()
 {
   // Should be multiplied by 2 for full power utilization
-  m1_pow = 2 * (y + x);
-  m2_pow = 2 * (y - x);
-  m3_pow = 2 * (y - x);
-  m4_pow = 2 * (y + x);
-  m1_pow = constrain(m1_pow, -255, 255);
-  m2_pow = constrain(m2_pow, -255, 255);
-  m3_pow = constrain(m3_pow, -255, 255);
-  m4_pow = constrain(m4_pow, -255, 255);
+  if (x == 0 && y == 0 && PS4.R3() == 1)
+  {
+    m1_pow = -255;
+    m2_pow = -255;
+    m3_pow = 255;
+    m4_pow = 255;
+  }
+  else
+  {
+    m1_pow = 2 * (y + x);
+    m2_pow = 2 * (y - x);
+    m3_pow = 2 * (y - x);
+    m4_pow = 2 * (y + x);
+    m1_pow = constrain(m1_pow, -255, 255);
+    m2_pow = constrain(m2_pow, -255, 255);
+    m3_pow = constrain(m3_pow, -255, 255);
+    m4_pow = constrain(m4_pow, -255, 255);
+  }
 }
 
 void SetMotorSpeeds()

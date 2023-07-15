@@ -94,22 +94,24 @@ void readValues()
 
 void calculateValues()
 {
-    Serial.print("l_2: ");
-    Serial.print(l_2);
-    Serial.print("   r_2: ");
-    Serial.print(r_2);
-    Serial.print("   l_stick_Y: ");
-    Serial.println(l_stick_Y);
-    Serial.print("   left: ");
-    Serial.print(left);
-    Serial.print("   right: ");
-    Serial.println(right);
+    // Serial.print("l_2: ");
+    // Serial.print(l_2);
+    // Serial.print("   r_2: ");
+    // Serial.print(r_2);
+    // Serial.print("   l_stick_Y: ");
+    // Serial.print(l_stick_Y);
+    // Serial.print("  Position");
+    // Serial.print(stack_position);
+    // Serial.print("   left: ");
+    // Serial.print(left);
+    // Serial.print("   right: ");
+    // Serial.println(right);
 
     // set shooter value
     if (abs(l_2 > 0))
-        shooter_motor_val = 0.2 * abs(l_2);
+        shooter_motor_val = 0.5 * abs(l_2);
     else if (abs(r_2 < 0))
-        shooter_motor_val = 0.2 * abs(r_2);
+        shooter_motor_val = 0.5 * abs(r_2);
     else
         shooter_motor_val = 0;
 
@@ -160,11 +162,17 @@ void driveMotors()
     if (loader_motor_val > 0)
     {
         loader_stepper.moveToDistance(loader_max_position);
-        loader_stepper.run();
+        while (loader_stepper.currentPosition() != loader_max_position)
+        {
+            loader_stepper.run();
+        }
     }
     else if (loader_motor_val < 0)
     {
         loader_stepper.moveToDistance(loader_min_position);
-        loader_stepper.run();
+        while (loader_stepper.currentPosition() != loader_min_position)
+        {
+            loader_stepper.run();
+        }
     }
 }

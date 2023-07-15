@@ -34,6 +34,10 @@ void onConnect()
     isPS4Connected = true;
 }
 
+void CalculateMotorSpeeds();
+void SetMotorSpeeds();
+void SendValuesToShooter();
+
 void setup()
 {
     pinMode(FdMotor, OUTPUT);
@@ -58,7 +62,8 @@ void loop()
     if (isPS4Connected)
     {
         x = PS4.RStickX();
-
+        z = PS4.LStickY();
+        z = (z < -deadzone ? z : (z > deadzone ? z : 0));
         x = (x < -deadzone ? x : (x > deadzone ? x : 0));
 
         CalculateMotorSpeeds();
@@ -67,13 +72,13 @@ void loop()
         current_time = millis();
         if (current_time - prev_time > data_rate)
         {
-            SendValuesToArm();
+            SendValuesToShooter();
             prev_time = current_time;
         }
     }
     else
     {
-        Serial.println("PS4 Controller not connected");
+        // Serial.println("PS4 Controller not connected");
         delay(1000);
     }
 }
@@ -97,15 +102,18 @@ void SetMotorSpeeds()
         analogWrite(FdMotor, LOW);
         analogWrite(BkMotor, -m1_pow);
     }
+    // debug prints
+    // Serial.print("m1_pow: ");
+    // Serial.println(m1_pow);
 }
 
-void SendValuesToArm()
+void SendValuesToShooter()
 {
     char ack = 6;
     Serial2.print(ack);
 
     // Stack controller values
-    Serial2.println(PS4.LStickY());
+    Serial2.println(z);
 
     // Loader controller values
     Serial2.println(PS4.L2Value());
@@ -113,4 +121,16 @@ void SendValuesToArm()
 
     Serial2.println(PS4.Left());
     Serial2.println(PS4.Right());
+
+    // debug prints
+    // Serial.print("  LStickY: ");
+    // Serial.print(PS4.LStickY());
+    // Serial.print("  L2Value: ");
+    // Serial.print(PS4.L2Value());
+    // Serial.print("  R2Value: ");
+    // Serial.print(PS4.R2Value());
+    // Serial.print("  Left: ");
+    // Serial.print(PS4.Left());
+    // Serial.print("  Right: ");
+    // Serial.println(PS4.Right());
 }

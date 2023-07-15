@@ -11,133 +11,160 @@
 #define motorInterfaceType 1
 
 // Shooter pinouts
-const int ShooterStepPin = 4;
-const int ShooterDirPin = 5;
+const int LoaderStepPin = 2;
+const int LoaderDirPin = 4;
 
 // Stack pinouts
-const int StackStepPin = 27;
-const int StackDirPin = 28;
+const int StackStepPin = 12;
+const int StackDirPin = 13;
 
-// Loader pinouts
-const int LoaderStepPin = 21;
-const int LoaderDirPin = 22;
+// Shooter Motor
+const int FdShooterMotor = 26;
+const int BkShooterMotor = 25;
 
-// PS4 Controller
-const int deadzone = 10;
-bool isPS4Connected = true;
-bool isUp = true;
+int l_2 = 0, r_2 = 0, l_stick_Y = 0;
+int left = 0, right = 0;
+int arm_motor = 0, shooter_motor_val = 0, stack_motor_val = 0, loader_motor_val = 0;
+float stack_position = 0, loader_position = 0;
 
-// Shooter Stepper instance
-AccelStepper shooter_stepper(motorInterfaceType, ShooterStepPin, ShooterDirPin);
-float stepper_max_speed = 1000;
-float stepper_acceleration = 500;
-float stepper_speed = 500;
+void readValues();
 
 // Stack Stepper instance - distance
 AccelStepperWithDistance stack_stepper(motorInterfaceType, StackStepPin, StackDirPin);
-float stack_max_position = 100;
+float stack_max_position = 700;
 float stack_min_position = 0;
-float stack_speed = 500;
-float stack_acceleration = 500;
+float stack_speed = 1000;
+float stack_acceleration = 1000;
+
+// Stack loader stepper
+AccelStepperWithDistance loader_stepper(motorInterfaceType, LoaderStepPin, LoaderDirPin);
+float loader_max_position = 15;
+float loader_min_position = 0;
+float loader_speed = 500;
+float loader_acceleration = 500;
 
 // put function declarations here:
-int testStepper(int, int);
-int calculateSpeed(int);
-
-void moveStack(bool);
-
-void onConnect();
-void reconnect();
+void readValues();
+void calculateValues();
+void driveMotors();
 
 void setup()
 {
     // put your setup code here, to run once:
-    // Shooter Stepper initialization
-    shooter_stepper.setMaxSpeed(stepper_max_speed);
-    shooter_stepper.setAcceleration(stepper_acceleration);
-    shooter_stepper.setSpeed(stepper_speed);
-    Serial.begin(9600);
+
+    // Shooter Motor Initialization
+    pinMode(FdShooterMotor, OUTPUT);
+    pinMode(BkShooterMotor, OUTPUT);
 
     // Stack Stepper initialization
     stack_stepper.setAcceleration(stack_acceleration);
     stack_stepper.setSpeed(stack_speed);
+    stack_stepper.setStepsPerRotation(200);
+    stack_stepper.setDistancePerRotation(2);
 
-    // Begin PS4 controller connection with MAC address
-    // PS4.begin();
-    // const uint8_t *address = esp_bt_dev_get_address();
-    // char str[100];
-    // sprintf(str, "ESP32's Bluetooth MAC address is - %02x:%02x:%02x:%02x:%02x:%02x", address[0], address[1], address[2], address[3], address[4], address[5]);
-    // Serial.println(str);
+    // Load Trigger initialization
+    loader_stepper.setAcceleration(loader_acceleration);
+    loader_stepper.setSpeed(loader_speed);
+    stack_stepper.setStepsPerRotation(200);
+    stack_stepper.setDistancePerRotation(2);
 
-    // PS4.attachOnConnect(onConnect);
+    Serial.begin(115200);
+    Serial2.begin(115200);
 }
 
 void loop()
 {
     // put your main code here, to run repeatedly:
-    // if Ps4 is not connected, try to connect
-    if (isPS4Connected)
-    {
-        // Set the speed of the stepper
-        int speed = calculateSpeed(100);
-        shooter_stepper.setSpeed(speed);
-
-        // Move the stack
-        moveStack(isUp);
-        isUp != isUp;
-    }
-    // else
-    // {
-    //     reconnect();
-    // }
+    readValues();      // Get values from Master ESP32
+    calculateValues(); // Calculate direction and PWM of each motor
+    driveMotors();     // Driver each motor
 }
 
-void reconnect()
+void readValues()
 {
-    // if Ps4 is not connected, try to connect
-    while (!PS4.isConnected())
+    if (Serial2.read() == 6)
     {
-        Serial.println("Connecting...");
-        PS4.begin();
-        delay(1000);
+        l_2 = Serial2.parseInt();
+        r_2 = Serial2.parseInt();
+        l_stick_Y = Serial2.parseInt();
+        left = Serial2.parseInt();
+        right = Serial2.parseInt();
     }
 }
 
-void onConnect()
-// when connected ps4
+void calculateValues()
 {
-    Serial.println("Connected!.");
-    uint8_t pairedDeviceBtAddr[20][6];
-    int count = esp_bt_gap_get_bond_device_num();
-    esp_bt_gap_get_bond_device_list(&count, pairedDeviceBtAddr);
-    for (int i = 0; i < count; i++)
+    Serial.print("l_2: ");
+    Serial.print(l_2);
+    Serial.print("   r_2: ");
+    Serial.print(r_2);
+    Serial.print("   l_stick_Y: ");
+    Serial.println(l_stick_Y);
+    Serial.print("   left: ");
+    Serial.print(left);
+    Serial.print("   right: ");
+    Serial.println(right);
+
+    // set shooter value
+    if (abs(l_2 > 0))
+        shooter_motor_val = 0.2 * abs(l_2);
+    else if (abs(r_2 < 0))
+        shooter_motor_val = 0.2 * abs(r_2);
+    else
+        shooter_motor_val = 0;
+
+    // set stack value
+    stack_motor_val = 0.2 * l_stick_Y;
+    stack_position += stack_motor_val;
+    if (stack_position > stack_max_position)
+        stack_position = stack_max_position;
+    else if (stack_position < stack_min_position)
+        stack_position = stack_min_position;
+
+    // set loader value
+    if (abs(left) > 0)
+        loader_motor_val = abs(left);
+    else if (abs(right) > 0)
+        loader_motor_val = -1 * abs(right);
+    else
+        loader_motor_val = 0;
+}
+
+void driveMotors()
+{
+    // Shooter Motor
+    if (shooter_motor_val > 0)
     {
-        char str[100];
-        const uint8_t *address = pairedDeviceBtAddr[i];
-        sprintf(str, "%d Bluetooth MAC address is - %02x:%02x:%02x:%02x:%02x:%02x", i, address[0], address[1], address[2], address[3], address[4], address[5]);
-        Serial.println(str);
+        digitalWrite(FdShooterMotor, shooter_motor_val);
+        digitalWrite(BkShooterMotor, LOW);
     }
-
-    isPS4Connected = true;
-}
-
-int calculateSpeed(int input)
-{
-    Serial.print("Speed: ");
-    Serial.println(input);
-    int speed = map(speed, -128, 127, -1000, 1000);
-    return speed;
-}
-
-void moveStack(bool isUp)
-{
-    // Get Up and Down button of PS4 and move the stack stepper
-    if (isUp)
+    else if (shooter_motor_val < 0)
     {
-        stack_stepper.moveTo(stack_max_position);
+        digitalWrite(FdShooterMotor, -shooter_motor_val);
+        digitalWrite(BkShooterMotor, HIGH);
     }
     else
     {
-        stack_stepper.moveTo(stack_min_position);
+        digitalWrite(FdShooterMotor, LOW);
+        digitalWrite(BkShooterMotor, LOW);
+    }
+
+    // Stack Motor
+    if (stack_motor_val != 0)
+    {
+        stack_stepper.moveToDistance(stack_position);
+        stack_stepper.run();
+    }
+
+    // Loader Motor
+    if (loader_motor_val > 0)
+    {
+        loader_stepper.moveToDistance(loader_max_position);
+        loader_stepper.run();
+    }
+    else if (loader_motor_val < 0)
+    {
+        loader_stepper.moveToDistance(loader_min_position);
+        loader_stepper.run();
     }
 }

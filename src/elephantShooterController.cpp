@@ -26,7 +26,8 @@ const int deadzone = 10;
 int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left = 0, right = 0, up = 0, down = 0;
 int cross = 0;
-int arm_motor = 0, shooter_motor_val = 0, stack_motor_val = 0, loader_position = 0;
+int arm_motor = 0;
+float shooter_motor_val = 0.0, stack_motor_val = 0.0, loader_position = 0.0;
 float stack_position = 0;
 long lastMillis = 0;
 
@@ -71,19 +72,19 @@ void setup()
     stack_stepper.setAcceleration(stack_acceleration);
     stack_stepper.setMaxSpeed(stack_speed);
     stack_stepper.setStepsPerRotation(200);
-    stack_stepper.setDistancePerRotation(2);
+    stack_stepper.setDistancePerRotation(0.8);
 
     // Load Trigger initialization
     loader_stepper.setAcceleration(loader_acceleration);
     loader_stepper.setMaxSpeed(loader_speed);
     stack_stepper.setStepsPerRotation(200);
-    stack_stepper.setDistancePerRotation(2);
+    stack_stepper.setDistancePerRotation(0.8);
 
-    // Load Trigger initialization
+    // Shooter Adjuster initialization
     shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
     shooter_adjuster_stepper.setMaxSpeed(shooter_adjuster_stepper_speed);
     shooter_adjuster_stepper.setStepsPerRotation(200);
-    shooter_adjuster_stepper.setDistancePerRotation(2);
+    shooter_adjuster_stepper.setDistancePerRotation(0.8);
 
     // Servo initialization
     shooter_stop_servo.attach(ShooterStopServoPin);
@@ -117,15 +118,15 @@ void readValues()
 void calculateValues()
 {
     // set shooter value
-    if (abs(l_2) > 0)
-        shooter_motor_val = -1 * abs(l_2);
-    else if (abs(r_2) > 0)
-        shooter_motor_val = abs(r_2);
+    if (l_2 > 0)
+        shooter_motor_val = -1 * l_2;
+    else if (r_2 > 0)
+        shooter_motor_val = r_2;
     else
         shooter_motor_val = 0;
 
     // set stack value
-    stack_motor_val = 0.1 * l_stick_Y;
+    stack_motor_val += 0.0001 * l_stick_Y;
 
     // set loader value
     if (left == 1)
@@ -158,7 +159,7 @@ void driveActuators()
     }
 
     // Stack Motor
-    stack_stepper.moveRelative(stack_motor_val);
+    stack_stepper.moveToDistance(stack_motor_val);
     stack_stepper.run();
 
     // Loader Motor
@@ -167,9 +168,9 @@ void driveActuators()
 
     // Shooter Adjuster Motor
     if (up == 1)
-        shooter_adjuster_stepper.moveRelative(stepsize);
-    else if (down == 1)
         shooter_adjuster_stepper.moveRelative(-stepsize);
+    else if (down == 1)
+        shooter_adjuster_stepper.moveRelative(stepsize);
     shooter_adjuster_stepper.run();
 
     // Reload operation

@@ -70,7 +70,7 @@ void setup()
     stack_stepper.setAcceleration(stack_acceleration);
     stack_stepper.setMaxSpeed(stack_speed);
     stack_stepper.setStepsPerRotation(200);
-    stack_stepper.setDistancePerRotation(1.0);
+    stack_stepper.setDistancePerRotation(0.204);
 
     // Load Trigger initialization
     loader_stepper.setAcceleration(loader_acceleration);

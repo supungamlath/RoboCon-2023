@@ -9,6 +9,7 @@ const int LoaderDirPin = 4;
 // Stack pinouts
 const int StackStepPin = 12;
 const int StackDirPin = 13;
+const float stack_position_step = 1.4;
 
 // Shooter Motor
 const int FdShooterMotor = 26;
@@ -24,10 +25,9 @@ const float adjuster_step_size = 0.5;
 const int deadzone = 10;
 
 int l_2 = 0, r_2 = 0, l_stick_Y = 0;
-int left = 0, right = 0, up = 0, down = 0;
-int cross = 0;
+int left_right_btns = 0, up_down_btns = 0, l1_r1_btns = 0, cmd_btns = 0;
 int shooter_motor_val = 0;
-float stack_position_step = 0.0, loader_position = 0.0;
+float loader_position = 0.0;
 int adjuster_move = 0;
 long lastMillis = 0;
 
@@ -105,11 +105,10 @@ void readValues()
         l_stick_Y = Serial2.parseInt();
         l_2 = Serial2.parseInt();
         r_2 = Serial2.parseInt();
-        left = Serial2.parseInt();
-        right = Serial2.parseInt();
-        up = Serial2.parseInt();
-        down = Serial2.parseInt();
-        cross = Serial2.parseInt();
+        up_down_btns = Serial2.parseInt();
+        left_right_btns = Serial2.parseInt();
+        l1_r1_btns = Serial2.parseInt();
+        cmd_btns = Serial2.parseInt();
     }
 }
 
@@ -120,12 +119,12 @@ void calculateValues()
         shooter_motor_val = -1 * l_2;
     else if (r_2 > 0)
         shooter_motor_val = r_2;
-    else if (up == 1)
+    else if (up_down_btns == 1)
     {
         adjuster_move = -1;
         shooter_motor_val = 3;
     }
-    else if (down == 1)
+    else if (up_down_btns == -1)
     {
         adjuster_move = 1;
     }
@@ -136,13 +135,13 @@ void calculateValues()
     }
 
     // set stack value
-    l_stick_Y = (l_stick_Y < -10 ? l_stick_Y : (l_stick_Y > 10 ? l_stick_Y : 0));
-    stack_position_step = 0.01 * l_stick_Y;
+    // l_stick_Y = (l_stick_Y < -10 ? l_stick_Y : (l_stick_Y > 10 ? l_stick_Y : 0));
+    // stack_position_step = 0.01 * l_stick_Y;
 
     // set loader value
-    if (left == 1)
+    if (left_right_btns == 1)
         loader_position = loader_min_position;
-    else if (right == 1)
+    else if (left_right_btns == -1)
         loader_position = loader_max_position;
 }
 
@@ -166,8 +165,15 @@ void driveActuators()
     }
 
     // Stack Motor
-    stack_stepper.moveRelative(stack_position_step);
-    stack_stepper.run();
+    if (l1_r1_btns == 1)
+    {
+        shooter_adjuster_stepper.moveRelative(stack_position_step);
+    }
+    else if (l1_r1_btns == -1)
+    {
+        shooter_adjuster_stepper.moveRelative(-stack_position_step);
+    }
+    shooter_adjuster_stepper.run();
 
     // Loader Motor
     loader_stepper.moveToDistance(loader_position);
@@ -185,7 +191,7 @@ void driveActuators()
     shooter_adjuster_stepper.run();
 
     // Reload operation
-    if (cross == 1)
+    if (cmd_btns == 3)
     {
         shooter_adjuster_stepper.runToNewDistance(loader_max_position);
         delay(1000);

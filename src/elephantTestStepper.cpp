@@ -2,8 +2,8 @@
 #include <AccelStepperWithDistance.h>
 
 // Define pin connections
-const int dirPin = 4;
-const int stepPin = 2;
+const int dirPin = 19;
+const int stepPin = 21;
 
 // Creates an instance
 AccelStepperWithDistance myStepper(AccelStepperWithDistance::DRIVER, stepPin, dirPin);

@@ -19,7 +19,7 @@ const int ShooterStopServoPin = 22;
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 21;
 const int ShooterAdjusterDirPin = 19;
-const float stepsize = 10;
+const float stepsize = 10.0;
 
 const int deadzone = 10;
 
@@ -48,8 +48,8 @@ float loader_acceleration = 800;
 AccelStepperWithDistance shooter_adjuster_stepper(AccelStepperWithDistance::DRIVER, ShooterAdjusterStepPin, ShooterAdjusterDirPin);
 float shooter_adjuster_stepper_max_position = 30;
 float shooter_adjuster_stepper_min_position = 0;
-float shooter_adjuster_stepper_speed = 1000;
-float shooter_adjuster_stepper_acceleration = 1000;
+float shooter_adjuster_stepper_speed = 500;
+float shooter_adjuster_stepper_acceleration = 500;
 
 Servo shooter_stop_servo;
 
@@ -137,7 +137,7 @@ void calculateValues()
         loader_position = loader_max_position;
     }
 
-    if (abs(loader_stepper.getCurrentPositionDistance() - loader_max_position) < 5)
+    if (abs(shooter_adjuster_stepper.getCurrentPositionDistance() - shooter_adjuster_stepper_max_position) < 5)
     {
         shooter_stop_servo.write(0);
     }

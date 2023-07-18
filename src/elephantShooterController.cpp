@@ -136,15 +136,6 @@ void calculateValues()
     {
         loader_position = loader_max_position;
     }
-
-    if (abs(shooter_adjuster_stepper.getCurrentPositionDistance() - shooter_adjuster_stepper_max_position) < 5)
-    {
-        shooter_stop_servo.write(0);
-    }
-    else
-    {
-        shooter_stop_servo.write(90);
-    }
 }
 
 void driveActuators()
@@ -176,9 +167,10 @@ void driveActuators()
 
     // Shooter Adjuster Motor
     if (up == 1)
-        shooter_adjuster_stepper.move(stepsize);
+        shooter_adjuster_stepper.moveRelative(stepsize);
     else if (down == 1)
-        shooter_adjuster_stepper.move(-stepsize);
+        shooter_adjuster_stepper.moveRelative(-stepsize);
+    shooter_adjuster_stepper.run();
 
     // Reload operation
     if (cross == 1)
@@ -187,5 +179,14 @@ void driveActuators()
         delay(1000);
         // engage servo
         shooter_adjuster_stepper.runToNewDistance(loader_min_position);
+    }
+
+    if (abs(shooter_adjuster_stepper.getCurrentPositionDistance() - shooter_adjuster_stepper_max_position) < 5)
+    {
+        shooter_stop_servo.write(0);
+    }
+    else
+    {
+        shooter_stop_servo.write(90);
     }
 }

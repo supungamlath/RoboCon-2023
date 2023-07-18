@@ -15,16 +15,9 @@ const int BkShooterMotor = 25;
 
 int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left = 0, right = 0;
-<<<<<<< HEAD
-int arm_motor_dir = 0, shooter_motor_val = 0, stack_motor_val = 0, loader_motor_val = 0;
-float stack_position = 0, loader_position = 0;
-
-void readValues();
-=======
 int arm_motor = 0, shooter_motor_val = 0, stack_motor_val = 0, loader_position = 0;
 float stack_position = 0;
 long lastMillis = 0;
->>>>>>> 6a6fe8278712803472b580a626bfaabaf7337a8b
 
 // Stack Stepper instance - distance
 AccelStepperWithDistance stack_stepper(AccelStepperWithDistance::DRIVER, StackStepPin, StackDirPin);
@@ -72,14 +65,9 @@ void setup()
 void loop()
 {
     // put your main code here, to run repeatedly:
-    readValues();      // Get values from Master ESP32
-<<<<<<< HEAD
+    readValues();          // Get values from Master ESP32
     calculateFreeMotion(); // Calculate direction and PWM of each motor
-    driveActuators();     // Driver each motor
-=======
-    calculateValues(); // Calculate direction and PWM of each motor
-    driveMotors();     // Drive each motor
->>>>>>> 6a6fe8278712803472b580a626bfaabaf7337a8b
+    driveActuators();      // Drive each motor
 }
 
 void readValues()

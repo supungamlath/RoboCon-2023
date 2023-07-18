@@ -24,7 +24,7 @@ const int BkShooterMotor = 25;
 
 int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left = 0, right = 0;
-int arm_motor = 0, shooter_motor_val = 0, stack_motor_val = 0, loader_motor_val = 0;
+int arm_motor_dir = 0, shooter_motor_val = 0, stack_motor_val = 0, loader_motor_val = 0;
 float stack_position = 0, loader_position = 0;
 
 void readValues();
@@ -45,8 +45,8 @@ float loader_acceleration = 500;
 
 // put function declarations here:
 void readValues();
-void calculateValues();
-void driveMotors();
+void calculateFreeMotion();
+void driveActuators();
 
 void setup()
 {
@@ -76,8 +76,8 @@ void loop()
 {
     // put your main code here, to run repeatedly:
     readValues();      // Get values from Master ESP32
-    calculateValues(); // Calculate direction and PWM of each motor
-    driveMotors();     // Driver each motor
+    calculateFreeMotion(); // Calculate direction and PWM of each motor
+    driveActuators();     // Driver each motor
 }
 
 void readValues()
@@ -92,7 +92,7 @@ void readValues()
     }
 }
 
-void calculateValues()
+void calculateFreeMotion()
 {
     Serial.print("l_2: ");
     Serial.print(l_2);
@@ -130,7 +130,7 @@ void calculateValues()
         loader_motor_val = 0;
 }
 
-void driveMotors()
+void driveActuators()
 {
     // Shooter Motor
     if (shooter_motor_val > 0)

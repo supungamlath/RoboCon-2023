@@ -5,15 +5,24 @@
 #include "esp_gap_bt_api.h"
 #include "esp_err.h"
 
-const int FdMotor = 23;
-const int BkMotor = 24;
+const int FdFrontLeft = 2;
+const int BkFrontLeft = 23;
+
+const int FdBackLeft = 25;
+const int BkBackLeft = 26;
+
+const int FdFrontRight = 32;
+const int BkFrontRight = 27;
+
+const int FdBackRight = 18;
+const int BkBackRight = 19;
 
 const int deadzone = 10;
 
 bool isPS4Connected = false;
 
-int x = 0, z = 0;
-int m1_pow = 0;
+int x = 0, y = 0;
+int m1_pow = 0, m2_pow = 0, m3_pow = 0, m4_pow = 0;
 long data_rate = 20, prev_time = 0, current_time = 0;
 
 void onConnect()
@@ -36,8 +45,14 @@ void onConnect()
 
 void setup()
 {
-    pinMode(FdMotor, OUTPUT);
-    pinMode(BkMotor, OUTPUT);
+    pinMode(FdFrontLeft, OUTPUT);
+    pinMode(BkFrontLeft, OUTPUT);
+    pinMode(FdBackLeft, OUTPUT);
+    pinMode(BkBackLeft, OUTPUT);
+    pinMode(FdFrontRight, OUTPUT);
+    pinMode(BkFrontRight, OUTPUT);
+    pinMode(FdBackRight, OUTPUT);
+    pinMode(BkBackRight, OUTPUT);
 
     // Print the Bluetooth MAC address
     Serial.begin(115200);
@@ -58,6 +73,7 @@ void loop()
     if (isPS4Connected)
     {
         x = PS4.RStickX();
+        y = PS4.RStickY();
 
         x = (x < -deadzone ? x : (x > deadzone ? x : 0));
 
@@ -81,21 +97,58 @@ void loop()
 void CalculateMotorSpeeds()
 {
     // Should be multiplied by 2 for full power utilization
-    m1_pow = 2 * x;
+    // Should be multiplied by 2 for full power utilization
+    m1_pow = 2 * (x - y);
+    m2_pow = 2 * (x + y);
+    m3_pow = 2 * (x - y);
+    m4_pow = 2 * (x + y);
     m1_pow = constrain(m1_pow, -255, 255);
+    m2_pow = constrain(m2_pow, -255, 255);
+    m3_pow = constrain(m3_pow, -255, 255);
+    m4_pow = constrain(m4_pow, -255, 255);
 }
 
 void SetMotorSpeeds()
 {
-    if (m1_pow > 0) // forward
+    if (m1_pow >= 0) // forward
     {
-        analogWrite(FdMotor, m1_pow);
-        analogWrite(BkMotor, LOW);
+        analogWrite(FdFrontLeft, m1_pow);
+        analogWrite(BkFrontLeft, LOW);
     }
-    else
+    else // backward
     {
-        analogWrite(FdMotor, LOW);
-        analogWrite(BkMotor, -m1_pow);
+        analogWrite(BkFrontLeft, -m1_pow);
+        analogWrite(FdFrontLeft, LOW);
+    }
+    if (m2_pow >= 0) // forward
+    {
+        analogWrite(FdBackLeft, m2_pow);
+        analogWrite(BkBackLeft, LOW);
+    }
+    else // backward
+    {
+        analogWrite(BkBackLeft, -m2_pow);
+        analogWrite(FdBackLeft, LOW);
+    }
+    if (m3_pow >= 0) // forward
+    {
+        analogWrite(FdFrontRight, m3_pow);
+        analogWrite(BkFrontRight, LOW);
+    }
+    else // backward
+    {
+        analogWrite(BkFrontRight, -m3_pow);
+        analogWrite(FdFrontRight, LOW);
+    }
+    if (m4_pow >= 0) // forward
+    {
+        analogWrite(FdBackRight, m4_pow);
+        analogWrite(BkBackRight, LOW);
+    }
+    else // backward
+    {
+        analogWrite(BkBackRight, -m4_pow);
+        analogWrite(FdBackRight, LOW);
     }
 }
 

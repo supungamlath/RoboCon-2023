@@ -27,7 +27,8 @@ int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left = 0, right = 0, up = 0, down = 0;
 int cross = 0;
 int shooter_motor_val = 0;
-float stack_position = 0.0, loader_position = 0.0, adjuster_position = 0.0;
+float stack_position = 0.0, loader_position = 0.0;
+int adjuster_move = 0;
 long lastMillis = 0;
 
 // Stack Stepper instance - distance
@@ -48,7 +49,7 @@ float loader_acceleration = 800;
 AccelStepperWithDistance shooter_adjuster_stepper(AccelStepperWithDistance::DRIVER, ShooterAdjusterStepPin, ShooterAdjusterDirPin);
 float shooter_adjuster_stepper_max_position = 30;
 float shooter_adjuster_stepper_min_position = 0;
-float shooter_adjuster_stepper_speed = 500;
+float shooter_adjuster_stepper_speed = -500;
 float shooter_adjuster_stepper_acceleration = 500;
 
 Servo shooter_stop_servo;
@@ -133,11 +134,15 @@ void calculateValues()
 
     if (up == 1)
     {
-        adjuster_position -= adjuster_step_size;
+        adjuster_move = 1;
     }
     else if (down == 1)
     {
-        adjuster_position += adjuster_step_size;
+        adjuster_move = -1;
+    }
+    else
+    {
+        adjuster_move = 0;
     }
 }
 
@@ -167,7 +172,14 @@ void driveActuators()
     loader_stepper.runToNewDistance(loader_position);
 
     // Shooter Adjuster Motor
-    shooter_adjuster_stepper.runToNewDistance(adjuster_position);
+    if (adjuster_move == 1)
+    {
+        shooter_adjuster_stepper.runRelative(adjuster_step_size);
+    }
+    else if (adjuster_move == -1)
+    {
+        shooter_adjuster_stepper.runRelative(-adjuster_step_size);
+    }
 
     // Reload operation
     if (cross == 1)

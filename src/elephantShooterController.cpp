@@ -28,7 +28,7 @@ int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left_right_btns = 0, up_down_btns = 0, l1_r1_btns = 0, cmd_btns = 0;
 int shooter_motor_val = 0;
 float loader_position = 0.0;
-int adjuster_move = 0;
+int adjuster_move = 0, stack_move = 0;
 long lastMillis = 0;
 
 // Stack Stepper instance - distance
@@ -134,7 +134,12 @@ void calculateValues()
         shooter_motor_val = 0;
     }
 
-    // set stack value
+    // set stack move
+    if (stack_stepper.currentPosition() == stack_stepper.targetPosition())
+        stack_move = l1_r1_btns;
+    else
+        stack_move = 0;
+
     // l_stick_Y = (l_stick_Y < -10 ? l_stick_Y : (l_stick_Y > 10 ? l_stick_Y : 0));
     // stack_position_step = 0.01 * l_stick_Y;
 
@@ -165,11 +170,11 @@ void driveActuators()
     }
 
     // Stack Motor
-    if (l1_r1_btns == 1)
+    if (stack_move == 1)
     {
         stack_stepper.moveRelative(stack_position_step);
     }
-    else if (l1_r1_btns == -1)
+    else if (stack_move == -1)
     {
         stack_stepper.moveRelative(-stack_position_step);
     }

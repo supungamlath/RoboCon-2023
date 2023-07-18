@@ -19,7 +19,7 @@ const int ShooterStopServoPin = 22;
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 21;
 const int ShooterAdjusterDirPin = 19;
-const float adjuster_step_size = 10.0;
+const float adjuster_step_size = 0.5;
 
 const int deadzone = 10;
 
@@ -49,7 +49,7 @@ float loader_acceleration = 800;
 AccelStepperWithDistance shooter_adjuster_stepper(AccelStepperWithDistance::DRIVER, ShooterAdjusterStepPin, ShooterAdjusterDirPin);
 float shooter_adjuster_stepper_max_position = 30;
 float shooter_adjuster_stepper_min_position = 0;
-float shooter_adjuster_stepper_speed = -500;
+float shooter_adjuster_stepper_speed = 500;
 float shooter_adjuster_stepper_acceleration = 500;
 
 Servo shooter_stop_servo;
@@ -124,7 +124,7 @@ void calculateValues()
         shooter_motor_val = 0;
 
     // set stack value
-    stack_position += 0.0001 * l_stick_Y;
+    stack_position += 0.001 * l_stick_Y;
 
     // set loader value
     if (left == 1)
@@ -166,20 +166,23 @@ void driveActuators()
     }
 
     // Stack Motor
-    stack_stepper.runToNewDistance(stack_position);
+    stack_stepper.moveToDistance(stack_position);
+    stack_stepper.run();
 
     // Loader Motor
-    loader_stepper.runToNewDistance(loader_position);
+    loader_stepper.moveToDistance(loader_position);
+    loader_stepper.run();
 
     // Shooter Adjuster Motor
     if (adjuster_move == 1)
     {
-        shooter_adjuster_stepper.runRelative(adjuster_step_size);
+        shooter_adjuster_stepper.moveRelative(adjuster_step_size);
     }
     else if (adjuster_move == -1)
     {
-        shooter_adjuster_stepper.runRelative(-adjuster_step_size);
+        shooter_adjuster_stepper.moveRelative(-adjuster_step_size);
     }
+    shooter_adjuster_stepper.run();
 
     // Reload operation
     if (cross == 1)

@@ -5,10 +5,10 @@
 #include "esp_gap_bt_api.h"
 #include "esp_err.h"
 
-const int ArmServoPin = 2;
-const int WristServoPin = 23;
+const int FdFrontLeft = 2;
+const int BkFrontLeft = 23;
 
-const int GripServoPin = 25;
+const int FdBackLeft = 25;
 const int BkBackLeft = 26;
 
 const int FdFrontRight = 32;
@@ -45,9 +45,9 @@ void onConnect()
 
 void setup()
 {
-  pinMode(ArmServoPin, OUTPUT);
-  pinMode(WristServoPin, OUTPUT);
-  pinMode(GripServoPin, OUTPUT);
+  pinMode(FdFrontLeft, OUTPUT);
+  pinMode(BkFrontLeft, OUTPUT);
+  pinMode(FdBackLeft, OUTPUT);
   pinMode(BkBackLeft, OUTPUT);
   pinMode(FdFrontRight, OUTPUT);
   pinMode(BkFrontRight, OUTPUT);
@@ -76,9 +76,11 @@ void loop()
   {
     y = PS4.RStickY();
     x = PS4.RStickX();
+    z = PS4.LStickX();
 
     y = (y < -deadzone ? y : (y > deadzone ? y : 0));
     x = (x < -deadzone ? x : (x > deadzone ? x : 0));
+    z = (z < -deadzone ? z : (z > deadzone ? z : 0));
 
     CalculateMotorSpeeds();
     SetMotorSpeeds();
@@ -100,57 +102,47 @@ void loop()
 void CalculateMotorSpeeds()
 {
   // Should be multiplied by 2 for full power utilization
-  if (x == 0 && y == 0 && PS4.R3() == 1)
-  {
-    m1_pow = -255;
-    m2_pow = -255;
-    m3_pow = 255;
-    m4_pow = 255;
-  }
-  else
-  {
-    m1_pow = 2 * (y + x);
-    m2_pow = 2 * (y - x);
-    m3_pow = 2 * (y - x);
-    m4_pow = 2 * (y + x);
-    m1_pow = constrain(m1_pow, -255, 255);
-    m2_pow = constrain(m2_pow, -255, 255);
-    m3_pow = constrain(m3_pow, -255, 255);
-    m4_pow = constrain(m4_pow, -255, 255);
-  }
+  m1_pow = 2 * (y + x + z);
+  m2_pow = 2 * (y - x + z);
+  m3_pow = 2 * (y - x - z);
+  m4_pow = 2 * (y + x - z);
+  m1_pow = constrain(m1_pow, -255, 255);
+  m2_pow = constrain(m2_pow, -255, 255);
+  m3_pow = constrain(m3_pow, -255, 255);
+  m4_pow = constrain(m4_pow, -255, 255);
 }
 
 void SetMotorSpeeds()
 {
   if (m1_pow > 0) // forward
   {
-    analogWrite(ArmServoPin, m1_pow);
-    analogWrite(WristServoPin, LOW);
+    analogWrite(FdFrontLeft, m1_pow);
+    analogWrite(BkFrontLeft, LOW);
   }
   else if (m1_pow < 0) // backward
   {
-    analogWrite(WristServoPin, -m1_pow);
-    analogWrite(ArmServoPin, LOW);
+    analogWrite(BkFrontLeft, -m1_pow);
+    analogWrite(FdFrontLeft, LOW);
   }
   else
   {
-    analogWrite(ArmServoPin, HIGH);
-    analogWrite(WristServoPin, HIGH);
+    analogWrite(FdFrontLeft, HIGH);
+    analogWrite(BkFrontLeft, HIGH);
   }
 
   if (m2_pow > 0) // forward
   {
-    analogWrite(GripServoPin, m2_pow);
+    analogWrite(FdBackLeft, m2_pow);
     analogWrite(BkBackLeft, LOW);
   }
   else if (m2_pow < 0) // backward
   {
     analogWrite(BkBackLeft, -m2_pow);
-    analogWrite(GripServoPin, LOW);
+    analogWrite(FdBackLeft, LOW);
   }
   else
   {
-    analogWrite(GripServoPin, HIGH);
+    analogWrite(FdBackLeft, HIGH);
     analogWrite(BkBackLeft, HIGH);
   }
 
@@ -194,4 +186,10 @@ void SendValuesToArm()
   Serial2.println(PS4.L2Value());
   Serial2.println(PS4.R2Value());
   Serial2.println(PS4.LStickY());
+  int up_down_btns = (PS4.Up() == 1 ? 1 : (PS4.Down() == 1 ? -1 : 0));
+  Serial2.println(up_down_btns);
+  int left_right_btns = (PS4.Left() == 1 ? 1 : (PS4.Right() == 1 ? -1 : 0));
+  Serial2.println(left_right_btns);
+  int cmd_btns = (PS4.Triangle() == 1 ? 1 : (PS4.Circle() == 1 ? 2 : (PS4.Cross() == 1 ? 3 : (PS4.Square() == 1 ? 4 : 0))));
+  Serial2.println(cmd_btns);
 }

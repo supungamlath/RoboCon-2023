@@ -5,17 +5,17 @@
 #include "esp_gap_bt_api.h"
 #include "esp_err.h"
 
-const int FdFrontLeft = 2;
-const int BkFrontLeft = 23;
+const int FdFrontLeft = 25;
+const int BkFrontLeft = 26;
 
-const int FdBackLeft = 25;
-const int BkBackLeft = 26;
+const int FdBackLeft = 19;
+const int BkBackLeft = 21;
 
-const int FdFrontRight = 32;
-const int BkFrontRight = 27;
+const int FdFrontRight = 27;
+const int BkFrontRight = 32;
 
-const int FdBackRight = 18;
-const int BkBackRight = 19;
+const int FdBackRight = 2;
+const int BkBackRight = 23;
 
 const int deadzone = 10;
 

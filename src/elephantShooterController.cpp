@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <AccelStepperWithDistance.h>
-#include <Servo.h>
+#include <ESP32Servo.h>
 
 // Shooter pinouts
 const int LoaderStepPin = 2;
@@ -17,8 +17,9 @@ const int BkShooterMotor = 25;
 const int ShooterStopServoPin = 22;
 
 // Shooter adjuster
-const int ShooterAdjusterStepPin = 27;
-const int ShooterAdjusterDirPin = 14;
+const int ShooterAdjusterStepPin = 21;
+const int ShooterAdjusterDirPin = 19;
+const float stepsize = 10;
 
 const int deadzone = 10;
 
@@ -138,11 +139,11 @@ void calculateValues()
 
     if (abs(loader_stepper.getCurrentPositionDistance() - loader_max_position) < 5)
     {
-        shooter_stop_servo.write(90);
+        shooter_stop_servo.write(0);
     }
     else
     {
-        shooter_stop_servo.write(0);
+        shooter_stop_servo.write(90);
     }
 }
 
@@ -175,9 +176,9 @@ void driveActuators()
 
     // Shooter Adjuster Motor
     if (up == 1)
-        shooter_adjuster_stepper.move(up);
+        shooter_adjuster_stepper.move(stepsize);
     else if (down == 1)
-        shooter_adjuster_stepper.move(down);
+        shooter_adjuster_stepper.move(-stepsize);
 
     // Reload operation
     if (cross == 1)

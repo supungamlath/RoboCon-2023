@@ -13,8 +13,15 @@ const int StackDirPin = 13;
 const int FdShooterMotor = 26;
 const int BkShooterMotor = 25;
 
+// Shooter adjuster
+const int ShooterAdjusterStepPin = 27;
+const int ShooterAdjusterDirPin = 14;
+
+const int deadzone = 10;
+
 int l_2 = 0, r_2 = 0, l_stick_Y = 0;
-int left = 0, right = 0;
+int left = 0, right = 0, up = 0, down = 0;
+int cross = 0;
 int arm_motor = 0, shooter_motor_val = 0, stack_motor_val = 0, loader_position = 0;
 float stack_position = 0;
 long lastMillis = 0;
@@ -28,10 +35,17 @@ float stack_acceleration = 1000;
 
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
-float loader_max_position = 5;
+float loader_max_position = 10;
 float loader_min_position = 0;
 float loader_speed = 3000;
 float loader_acceleration = 1500;
+
+// Shooter adjuster stepper
+AccelStepperWithDistance shooter_adjuster_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
+float shooter_adjuster_stepper_max_position = 30;
+float shooter_adjuster_stepper_min_position = 0;
+float shooter_adjuster_stepper_speed = 1000;
+float shooter_adjuster_stepper_acceleration = 1000;
 
 // put function declarations here:
 void readValues();
@@ -58,6 +72,12 @@ void setup()
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(2);
 
+    // Load Trigger initialization
+    shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
+    shooter_adjuster_stepper.setMaxSpeed(shooter_adjuster_stepper_speed);
+    shooter_adjuster_stepper.setStepsPerRotation(200);
+    shooter_adjuster_stepper.setDistancePerRotation(2);
+
     Serial.begin(115200);
     Serial2.begin(115200);
 }
@@ -79,26 +99,14 @@ void readValues()
         r_2 = Serial2.parseInt();
         left = Serial2.parseInt();
         right = Serial2.parseInt();
+        up = Serial2.parseInt();
+        down = Serial2.parseInt();
+        cross = Serial2.parseInt();
     }
 }
 
 void calculateFreeMotion()
 {
-    // Serial.print("l_2: ");
-    // Serial.print(l_2);
-    // Serial.print("   r_2: ");
-    // Serial.print(r_2);
-    // Serial.print("   l_stick_Y: ");
-    // Serial.print(l_stick_Y);
-    // Serial.print("  Position ");
-    // Serial.print(stack_position);
-    // Serial.print("   left: ");
-    // Serial.print(left);
-    // Serial.print("   right: ");
-    // Serial.println(right);
-    // Serial.print("   Shooter: ");
-    // Serial.print(shooter_motor_val);
-
     // set shooter value
     if (abs(l_2) > 0)
         shooter_motor_val = abs(l_2);
@@ -147,4 +155,18 @@ void driveActuators()
     // Loader Motor
     loader_stepper.moveToDistance(loader_position);
     loader_stepper.run();
+
+    // Shooter Adjuster Motor
+    if (up == 1)
+        shooter_adjuster_stepper.move(up);
+    else if (down == 1)
+        shooter_adjuster_stepper.move(down);
+
+    // Reload operation
+    if (cross == 1)
+    {
+        shooter_adjuster_stepper.runToNewDistance(loader_max_position);
+        // engage servo
+        shooter_adjuster_stepper.runToNewDistance(loader_min_position);
+    }
 }

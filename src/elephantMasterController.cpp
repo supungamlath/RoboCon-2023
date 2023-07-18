@@ -5,14 +5,14 @@
 #include "esp_gap_bt_api.h"
 #include "esp_err.h"
 
-const int FdFrontLeft = 25;
-const int BkFrontLeft = 26;
+const int FdFrontLeft = 27;
+const int BkFrontLeft = 32;
 
 const int FdBackLeft = 19;
 const int BkBackLeft = 21;
 
-const int FdFrontRight = 27;
-const int BkFrontRight = 32;
+const int FdFrontRight = 25;
+const int BkFrontRight = 26;
 
 const int FdBackRight = 2;
 const int BkBackRight = 23;
@@ -78,8 +78,11 @@ void loop()
     {
         x = PS4.RStickX();
         y = PS4.RStickY();
+        z = PS4.LStickY();
 
         x = (x < -deadzone ? x : (x > deadzone ? x : 0));
+        y = (y < -deadzone ? y : (y > deadzone ? y : 0));
+        z = (z < -deadzone ? z : (z > deadzone ? z : 0));
 
         CalculateMotorSpeeds();
         SetMotorSpeeds();
@@ -170,4 +173,9 @@ void SendValuesToShooter()
 
     Serial2.println(PS4.Left());
     Serial2.println(PS4.Right());
+
+    Serial2.println(PS4.Up());
+    Serial2.println(PS4.Down());
+
+    Serial2.println(PS4.Cross());
 }

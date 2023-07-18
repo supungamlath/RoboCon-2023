@@ -35,10 +35,10 @@ float stack_acceleration = 1000;
 
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
-float loader_max_position = 10;
-float loader_min_position = 0;
-float loader_speed = 3000;
-float loader_acceleration = 1500;
+float loader_max_position = 0;
+float loader_min_position = 12;
+float loader_speed = 1000;
+float loader_acceleration = 800;
 
 // Shooter adjuster stepper
 AccelStepperWithDistance shooter_adjuster_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
@@ -109,9 +109,9 @@ void calculateFreeMotion()
 {
     // set shooter value
     if (abs(l_2) > 0)
-        shooter_motor_val = abs(l_2);
+        shooter_motor_val = -1 * abs(l_2);
     else if (abs(r_2) > 0)
-        shooter_motor_val = -1 * abs(r_2);
+        shooter_motor_val = abs(r_2);
     else
         shooter_motor_val = 0;
 

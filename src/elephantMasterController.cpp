@@ -21,7 +21,7 @@ const int deadzone = 10;
 
 bool isPS4Connected = false;
 
-int x = 0, y = 0;
+int x = 0, y = 0, z = 0;
 int m1_pow = 0, m2_pow = 0, m3_pow = 0, m4_pow = 0;
 long data_rate = 20, prev_time = 0, current_time = 0;
 
@@ -42,6 +42,10 @@ void onConnect()
 
     isPS4Connected = true;
 }
+
+void CalculateMotorSpeeds();
+void SetMotorSpeeds();
+void SendValuesToShooter();
 
 void setup()
 {
@@ -83,7 +87,7 @@ void loop()
         current_time = millis();
         if (current_time - prev_time > data_rate)
         {
-            SendValuesToArm();
+            SendValuesToShooter();
             prev_time = current_time;
         }
     }
@@ -152,13 +156,13 @@ void SetMotorSpeeds()
     }
 }
 
-void SendValuesToArm()
+void SendValuesToShooter()
 {
     char ack = 6;
     Serial2.print(ack);
 
     // Stack controller values
-    Serial2.println(PS4.LStickY());
+    Serial2.println(z);
 
     // Loader controller values
     Serial2.println(PS4.L2Value());

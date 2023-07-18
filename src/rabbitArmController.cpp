@@ -16,7 +16,7 @@ float arm_servo_val = 40.0, wrist_servo_val = 0.0, grip_servo_val = 0.0, ring_li
 Servo arm_servo, wrist_servo, grip_servo, ring_lift_servo;
 
 void readValues();
-void calculateFreeMotion();
+void calculateValues();
 void calculatePresetMotion();
 void driveActuators();
 float slowIncrement(float, float);
@@ -45,7 +45,7 @@ void loop()
   readValues();      // Get values from Master ESP32
   if (cmd_btns == 0) // If a command button is not pressed
   {
-    calculateFreeMotion();
+    calculateValues();
   }
   else // If a command button is pressed
   {
@@ -67,7 +67,7 @@ void readValues()
   }
 }
 
-void calculateFreeMotion()
+void calculateValues()
 {
   l_stick_Y = (l_stick_Y < -10 ? l_stick_Y : (l_stick_Y > 10 ? l_stick_Y : 0));
 

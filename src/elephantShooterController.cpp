@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <AccelStepperWithDistance.h>
+#include <Servo.h>
 
 // Shooter pinouts
 const int LoaderStepPin = 2;
@@ -12,6 +13,8 @@ const int StackDirPin = 13;
 // Shooter Motor
 const int FdShooterMotor = 26;
 const int BkShooterMotor = 25;
+
+const int ShooterStopServoPin = 22;
 
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 27;
@@ -47,9 +50,11 @@ float shooter_adjuster_stepper_min_position = 0;
 float shooter_adjuster_stepper_speed = 1000;
 float shooter_adjuster_stepper_acceleration = 1000;
 
+Servo shooter_stop_servo;
+
 // put function declarations here:
 void readValues();
-void calculateFreeMotion();
+void calculateValues();
 void driveActuators();
 
 void setup()
@@ -59,6 +64,7 @@ void setup()
     // Shooter Motor Initialization
     pinMode(FdShooterMotor, OUTPUT);
     pinMode(BkShooterMotor, OUTPUT);
+    pinMode(ShooterStopServoPin, OUTPUT);
 
     // Stack Stepper initialization
     stack_stepper.setAcceleration(stack_acceleration);
@@ -78,16 +84,18 @@ void setup()
     shooter_adjuster_stepper.setStepsPerRotation(200);
     shooter_adjuster_stepper.setDistancePerRotation(2);
 
+    // Servo initialization
+    shooter_stop_servo.attach(ShooterStopServoPin);
+
     Serial.begin(115200);
     Serial2.begin(115200);
 }
 
 void loop()
 {
-    // put your main code here, to run repeatedly:
-    readValues();          // Get values from Master ESP32
-    calculateFreeMotion(); // Calculate direction and PWM of each motor
-    driveActuators();      // Drive each motor
+    readValues();      // Get values from Master ESP32
+    calculateValues(); // Calculate direction and PWM of each motor
+    driveActuators();  // Drive each motor
 }
 
 void readValues()
@@ -105,7 +113,7 @@ void readValues()
     }
 }
 
-void calculateFreeMotion()
+void calculateValues()
 {
     // set shooter value
     if (abs(l_2) > 0)
@@ -126,6 +134,15 @@ void calculateFreeMotion()
     else if (right == 1)
     {
         loader_position = loader_max_position;
+    }
+
+    if (abs(loader_stepper.getCurrentPositionDistance() - loader_max_position) < 5)
+    {
+        shooter_stop_servo.write(90);
+    }
+    else
+    {
+        shooter_stop_servo.write(0);
     }
 }
 

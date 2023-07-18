@@ -1,14 +1,5 @@
 #include <Arduino.h>
-#include <AccelStepper.h>
 #include <AccelStepperWithDistance.h>
-#include <PS4Controller.h>
-#include <esp_bt_main.h>
-#include <esp_bt_device.h>
-#include "esp_gap_bt_api.h"
-#include "esp_err.h"
-
-// Define motor interface type
-#define motorInterfaceType 1
 
 // Shooter pinouts
 const int LoaderStepPin = 2;
@@ -24,24 +15,23 @@ const int BkShooterMotor = 25;
 
 int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left = 0, right = 0;
-int arm_motor = 0, shooter_motor_val = 0, stack_motor_val = 0, loader_motor_val = 0;
-float stack_position = 0, loader_position = 0;
-
-void readValues();
+int arm_motor = 0, shooter_motor_val = 0, stack_motor_val = 0, loader_position = 0;
+float stack_position = 0;
+long lastMillis = 0;
 
 // Stack Stepper instance - distance
-AccelStepperWithDistance stack_stepper(motorInterfaceType, StackStepPin, StackDirPin);
-float stack_max_position = 700;
+AccelStepperWithDistance stack_stepper(AccelStepperWithDistance::DRIVER, StackStepPin, StackDirPin);
+float stack_max_position = 70;
 float stack_min_position = 0;
 float stack_speed = 1000;
 float stack_acceleration = 1000;
 
 // Stack loader stepper
-AccelStepperWithDistance loader_stepper(motorInterfaceType, LoaderStepPin, LoaderDirPin);
-float loader_max_position = 15;
+AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
+float loader_max_position = 5;
 float loader_min_position = 0;
-float loader_speed = 500;
-float loader_acceleration = 500;
+float loader_speed = 3000;
+float loader_acceleration = 1500;
 
 // put function declarations here:
 void readValues();
@@ -58,13 +48,13 @@ void setup()
 
     // Stack Stepper initialization
     stack_stepper.setAcceleration(stack_acceleration);
-    stack_stepper.setSpeed(stack_speed);
+    stack_stepper.setMaxSpeed(stack_speed);
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(2);
 
     // Load Trigger initialization
     loader_stepper.setAcceleration(loader_acceleration);
-    loader_stepper.setSpeed(loader_speed);
+    loader_stepper.setMaxSpeed(loader_speed);
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(2);
 
@@ -77,7 +67,7 @@ void loop()
     // put your main code here, to run repeatedly:
     readValues();      // Get values from Master ESP32
     calculateValues(); // Calculate direction and PWM of each motor
-    driveMotors();     // Driver each motor
+    driveMotors();     // Drive each motor
 }
 
 void readValues()
@@ -94,44 +84,41 @@ void readValues()
 
 void calculateValues()
 {
-    Serial.print("l_2: ");
-    Serial.print(l_2);
-    Serial.print("   r_2: ");
-    Serial.print(r_2);
-    Serial.print("   l_stick_Y: ");
-    Serial.print(l_stick_Y);
-    Serial.print("  Position ");
-    Serial.print(stack_position);
-    Serial.print("   left: ");
-    Serial.print(left);
-    Serial.print("   right: ");
-    Serial.println(right);
-    Serial.print("   Shooter: ");
-    Serial.print(shooter_motor_val);
+    // Serial.print("l_2: ");
+    // Serial.print(l_2);
+    // Serial.print("   r_2: ");
+    // Serial.print(r_2);
+    // Serial.print("   l_stick_Y: ");
+    // Serial.print(l_stick_Y);
+    // Serial.print("  Position ");
+    // Serial.print(stack_position);
+    // Serial.print("   left: ");
+    // Serial.print(left);
+    // Serial.print("   right: ");
+    // Serial.println(right);
+    // Serial.print("   Shooter: ");
+    // Serial.print(shooter_motor_val);
 
     // set shooter value
     if (abs(l_2) > 0)
         shooter_motor_val = abs(l_2);
     else if (abs(r_2) > 0)
-        shooter_motor_val = abs(r_2);
+        shooter_motor_val = -1 * abs(r_2);
     else
         shooter_motor_val = 0;
 
     // set stack value
-    stack_motor_val = 0.2 * l_stick_Y;
-    stack_position += stack_motor_val;
-    if (stack_position > stack_max_position)
-        stack_position = stack_max_position;
-    else if (stack_position < stack_min_position)
-        stack_position = stack_min_position;
+    stack_motor_val = 0.1 * l_stick_Y;
 
     // set loader value
-    if (abs(left) > 0)
-        loader_motor_val = abs(left);
-    else if (abs(right) > 0)
-        loader_motor_val = -1 * abs(right);
-    else
-        loader_motor_val = 0;
+    if (left == 1)
+    {
+        loader_position = loader_min_position;
+    }
+    else if (right == 1)
+    {
+        loader_position = loader_max_position;
+    }
 }
 
 void driveMotors()
@@ -144,8 +131,8 @@ void driveMotors()
     }
     else if (shooter_motor_val < 0)
     {
-        digitalWrite(FdShooterMotor, -shooter_motor_val);
-        digitalWrite(BkShooterMotor, HIGH);
+        digitalWrite(FdShooterMotor, LOW);
+        digitalWrite(BkShooterMotor, shooter_motor_val);
     }
     else
     {
@@ -154,27 +141,10 @@ void driveMotors()
     }
 
     // Stack Motor
-    if (stack_motor_val != 0)
-    {
-        stack_stepper.moveRelative(stack_motor_val);
-        stack_stepper.run();
-    }
+    stack_stepper.moveRelative(stack_motor_val);
+    stack_stepper.run();
 
     // Loader Motor
-    if (loader_motor_val > 0)
-    {
-        loader_stepper.moveToDistance(loader_max_position);
-        while (loader_stepper.currentPosition() != loader_max_position)
-        {
-            loader_stepper.run();
-        }
-    }
-    else if (loader_motor_val < 0)
-    {
-        loader_stepper.moveToDistance(loader_min_position);
-        while (loader_stepper.currentPosition() != loader_min_position)
-        {
-            loader_stepper.run();
-        }
-    }
+    loader_stepper.moveToDistance(loader_position);
+    loader_stepper.run();
 }

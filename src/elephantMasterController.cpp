@@ -5,8 +5,8 @@
 #include "esp_gap_bt_api.h"
 #include "esp_err.h"
 
-const int FdMotor = 23;
-const int BkMotor = 24;
+const int FdMotor = 25;
+const int BkMotor = 26;
 
 const int deadzone = 10;
 
@@ -78,7 +78,7 @@ void loop()
     }
     else
     {
-        // Serial.println("PS4 Controller not connected");
+        Serial.println("PS4 Controller not connected");
         delay(1000);
     }
 }
@@ -102,9 +102,6 @@ void SetMotorSpeeds()
         analogWrite(FdMotor, LOW);
         analogWrite(BkMotor, -m1_pow);
     }
-    // debug prints
-    // Serial.print("m1_pow: ");
-    // Serial.println(m1_pow);
 }
 
 void SendValuesToShooter()
@@ -121,16 +118,4 @@ void SendValuesToShooter()
 
     Serial2.println(PS4.Left());
     Serial2.println(PS4.Right());
-
-    // debug prints
-    // Serial.print("  LStickY: ");
-    // Serial.print(PS4.LStickY());
-    // Serial.print("  L2Value: ");
-    // Serial.print(PS4.L2Value());
-    // Serial.print("  R2Value: ");
-    // Serial.print(PS4.R2Value());
-    // Serial.print("  Left: ");
-    // Serial.print(PS4.Left());
-    // Serial.print("  Right: ");
-    // Serial.println(PS4.Right());
 }

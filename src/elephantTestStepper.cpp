@@ -5,11 +5,8 @@
 const int dirPin = 4;
 const int stepPin = 2;
 
-// Define motor interface type
-#define motorInterfaceType 1
-
 // Creates an instance
-AccelStepperWithDistance myStepper(motorInterfaceType, stepPin, dirPin);
+AccelStepperWithDistance myStepper(AccelStepperWithDistance::DRIVER, stepPin, dirPin);
 float position = 5.0;
 
 void setup()
@@ -28,13 +25,5 @@ void loop()
 {
     // Change direction once the motor reaches target position
     myStepper.moveToDistance(position);
-
-    if (myStepper.getCurrentPositionDistance() != position)
-    {
-        myStepper.run();
-    }
-    else
-    {
-        position = -1 * position;
-    }
+    myStepper.run();
 }

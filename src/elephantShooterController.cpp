@@ -27,7 +27,7 @@ int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left = 0, right = 0, up = 0, down = 0;
 int cross = 0;
 int shooter_motor_val = 0;
-float stack_position = 0.0, loader_position = 0.0;
+float stack_position_step = 0.0, loader_position = 0.0;
 int adjuster_move = 0;
 long lastMillis = 0;
 
@@ -35,8 +35,8 @@ long lastMillis = 0;
 AccelStepperWithDistance stack_stepper(AccelStepperWithDistance::DRIVER, StackStepPin, StackDirPin);
 float stack_max_position = 70;
 float stack_min_position = 0;
-float stack_speed = 1000;
-float stack_acceleration = 1000;
+float stack_speed = 500;
+float stack_acceleration = 800;
 
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
@@ -124,7 +124,8 @@ void calculateValues()
         shooter_motor_val = 0;
 
     // set stack value
-    stack_position += 0.001 * l_stick_Y;
+    l_stick_Y = (l_stick_Y < -10 ? l_stick_Y : (l_stick_Y > 10 ? l_stick_Y : 0));
+    stack_position_step = 0.01 * l_stick_Y;
 
     // set loader value
     if (left == 1)
@@ -166,7 +167,7 @@ void driveActuators()
     }
 
     // Stack Motor
-    stack_stepper.moveToDistance(stack_position);
+    stack_stepper.moveRelative(stack_position_step);
     stack_stepper.run();
 
     // Loader Motor

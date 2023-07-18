@@ -166,6 +166,7 @@ void driveActuators()
     if (cross == 1)
     {
         shooter_adjuster_stepper.runToNewDistance(loader_max_position);
+        delay(1000);
         // engage servo
         shooter_adjuster_stepper.runToNewDistance(loader_min_position);
     }

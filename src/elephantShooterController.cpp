@@ -19,16 +19,15 @@ const int ShooterStopServoPin = 22;
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 21;
 const int ShooterAdjusterDirPin = 19;
-const float stepsize = 10.0;
+const float adjuster_step_size = 10.0;
 
 const int deadzone = 10;
 
 int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left = 0, right = 0, up = 0, down = 0;
 int cross = 0;
-int arm_motor = 0;
-float shooter_motor_val = 0.0, stack_motor_val = 0.0, loader_position = 0.0;
-float stack_position = 0;
+int shooter_motor_val = 0;
+float stack_position = 0.0, loader_position = 0.0, adjuster_position = 0.0;
 long lastMillis = 0;
 
 // Stack Stepper instance - distance
@@ -61,8 +60,6 @@ void driveActuators();
 
 void setup()
 {
-    // put your setup code here, to run once:
-
     // Shooter Motor Initialization
     pinMode(FdShooterMotor, OUTPUT);
     pinMode(BkShooterMotor, OUTPUT);
@@ -126,16 +123,21 @@ void calculateValues()
         shooter_motor_val = 0;
 
     // set stack value
-    stack_motor_val += 0.0001 * l_stick_Y;
+    stack_position += 0.0001 * l_stick_Y;
 
     // set loader value
     if (left == 1)
-    {
         loader_position = loader_min_position;
-    }
     else if (right == 1)
-    {
         loader_position = loader_max_position;
+
+    if (up == 1)
+    {
+        adjuster_position -= adjuster_step_size;
+    }
+    else if (down == 1)
+    {
+        adjuster_position += adjuster_step_size;
     }
 }
 
@@ -159,19 +161,13 @@ void driveActuators()
     }
 
     // Stack Motor
-    stack_stepper.moveToDistance(stack_motor_val);
-    stack_stepper.run();
+    stack_stepper.runToNewDistance(stack_position);
 
     // Loader Motor
-    loader_stepper.moveToDistance(loader_position);
-    loader_stepper.run();
+    loader_stepper.runToNewDistance(loader_position);
 
     // Shooter Adjuster Motor
-    if (up == 1)
-        shooter_adjuster_stepper.moveRelative(-stepsize);
-    else if (down == 1)
-        shooter_adjuster_stepper.moveRelative(stepsize);
-    shooter_adjuster_stepper.run();
+    shooter_adjuster_stepper.runToNewDistance(adjuster_position);
 
     // Reload operation
     if (cross == 1)

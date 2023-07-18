@@ -9,7 +9,7 @@ const int LoaderDirPin = 4;
 // Stack pinouts
 const int StackStepPin = 12;
 const int StackDirPin = 13;
-const float stack_position_step = 1.4;
+const float stack_position_step = 1.0;
 
 // Shooter Motor
 const int FdShooterMotor = 26;
@@ -70,7 +70,7 @@ void setup()
     stack_stepper.setAcceleration(stack_acceleration);
     stack_stepper.setMaxSpeed(stack_speed);
     stack_stepper.setStepsPerRotation(200);
-    stack_stepper.setDistancePerRotation(0.8);
+    stack_stepper.setDistancePerRotation(1.0);
 
     // Load Trigger initialization
     loader_stepper.setAcceleration(loader_acceleration);
@@ -116,9 +116,9 @@ void calculateValues()
 {
     // set shooter and adjuster value
     if (l_2 > 0)
-        shooter_motor_val = -1 * l_2;
+        shooter_motor_val = l_2;
     else if (r_2 > 0)
-        shooter_motor_val = r_2;
+        shooter_motor_val = -1 * r_2;
     else if (up_down_btns == 1)
     {
         adjuster_move = -1;
@@ -167,13 +167,13 @@ void driveActuators()
     // Stack Motor
     if (l1_r1_btns == 1)
     {
-        shooter_adjuster_stepper.moveRelative(stack_position_step);
+        stack_stepper.moveRelative(stack_position_step);
     }
     else if (l1_r1_btns == -1)
     {
-        shooter_adjuster_stepper.moveRelative(-stack_position_step);
+        stack_stepper.moveRelative(-stack_position_step);
     }
-    shooter_adjuster_stepper.run();
+    stack_stepper.run();
 
     // Loader Motor
     loader_stepper.moveToDistance(loader_position);

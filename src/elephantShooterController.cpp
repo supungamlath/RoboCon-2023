@@ -106,14 +106,12 @@ void IRAM_ATTR stackLimitHit()
 {
     stack_stepper.setCurrentPosition(0);
     stack_stepper.stop();
-    Serial.println("Stack limit hit");
 }
 
 void IRAM_ATTR loaderLimitHit()
 {
     loader_stepper.setCurrentPosition(0);
     loader_stepper.stop();
-    Serial.println("Loader limit hit");
 }
 
 void loop()

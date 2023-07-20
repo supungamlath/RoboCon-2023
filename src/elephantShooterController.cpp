@@ -31,6 +31,7 @@ int left_right_btns = 0, up_down_btns = 0, l1_r1_btns = 0, cmd_btns = 0;
 int shooter_motor_val = 0;
 float loader_position = 0.0;
 float adjuster_position = 50.0;
+float saved_adjuster_position = 0.0;
 float stack_fine_step = 0.0;
 int loader_move = 0;
 int stack_move = 0;
@@ -210,13 +211,14 @@ void calculatePresetMotion()
     // Ring plate reload operation
     if (cmd_btns == 2)
     {
+        saved_adjuster_position = adjuster_position;
         if (shooter_adjuster_stepper.getCurrentPositionDistance() > shooter_adjuster_stepper_top_position)
         {
-            shooter_adjuster_stepper.moveToDistance(shooter_adjuster_stepper_top_position);
+            adjuster_position = shooter_adjuster_stepper_top_position;
         }
         else
         {
-            shooter_adjuster_stepper.moveToDistance(shooter_adjuster_stepper_bottom_position);
+            adjuster_position = saved_adjuster_position;
         }
     }
 

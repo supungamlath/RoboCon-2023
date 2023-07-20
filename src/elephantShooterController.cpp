@@ -35,15 +35,15 @@ long lastMillis = 0;
 
 // Stack Stepper instance - distance
 AccelStepperWithDistance stack_stepper(AccelStepperWithDistance::DRIVER, StackStepPin, StackDirPin);
-float stack_max_position = 70;
-float stack_min_position = 0;
+float stack_bottom_position = -60.0;
+float stack_top_position = 0.0;
 float stack_speed = 1000;
 float stack_acceleration = 1000;
 
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
-float loader_max_position = 10;
-float loader_min_position = 0;
+float loader_left_position = -50.0;
+float loader_right_position = 0.0;
 float loader_speed = 1000;
 float loader_acceleration = 800;
 
@@ -113,13 +113,9 @@ void IRAM_ATTR loaderLimitHit()
 
 void loop()
 {
-    stack_stepper.moveToDistance(5);
-    loader_stepper.moveToDistance(5);
-    stack_stepper.run();
-    loader_stepper.run();
-    // readValues();      // Get values from Master ESP32
-    // calculateValues(); // Calculate direction and PWM of each motor
-    // driveActuators();  // Drive each motor
+    readValues();      // Get values from Master ESP32
+    calculateValues(); // Calculate direction and PWM of each motor
+    driveActuators();  // Drive each motor
 }
 
 void readValues()
@@ -169,9 +165,9 @@ void calculateValues()
 
     // set loader value
     if (left_right_btns == 1)
-        loader_position = loader_max_position;
+        loader_position = loader_left_position;
     else if (left_right_btns == -1)
-        loader_position = loader_min_position;
+        loader_position = loader_right_position;
 }
 
 void driveActuators()
@@ -202,11 +198,9 @@ void driveActuators()
     {
         stack_stepper.moveRelative(-stack_position_step);
     }
-    stack_stepper.run();
 
     // Loader Motor
     loader_stepper.moveToDistance(loader_position);
-    loader_stepper.run();
 
     // Shooter Adjuster Motor
     if (adjuster_move == 1)
@@ -217,30 +211,27 @@ void driveActuators()
     {
         shooter_adjuster_stepper.moveRelative(-adjuster_step_size);
     }
-    shooter_adjuster_stepper.run();
 
     // Reload operation
     if (cmd_btns == 1)
     {
-        if (stack_stepper.getCurrentPositionDistance() < stack_max_position)
-            stack_stepper.moveTo(stack_max_position);
+        if (stack_stepper.targetPosition() == stack_top_position)
+            stack_stepper.moveTo(stack_bottom_position);
         else
-            stack_stepper.moveTo(stack_min_position);
-        shooter_adjuster_stepper.run();
+            stack_stepper.moveTo(stack_top_position - 14.0);
     }
 
     if (cmd_btns == 3)
     {
-        shooter_adjuster_stepper.runToNewDistance(loader_max_position);
+        shooter_adjuster_stepper.runToNewDistance(loader_left_position);
         delay(1000);
         // engage servo
-        shooter_adjuster_stepper.runToNewDistance(loader_min_position);
+        shooter_adjuster_stepper.runToNewDistance(loader_left_position);
     }
 
     if (cmd_btns == 4)
     {
         shooter_adjuster_stepper.moveTo(shooter_adjuster_stepper_min_position);
-        shooter_adjuster_stepper.run();
     }
 
     if (abs(shooter_adjuster_stepper.getCurrentPositionDistance() - shooter_adjuster_stepper_max_position) < 5)
@@ -251,4 +242,8 @@ void driveActuators()
     {
         shooter_stop_servo.write(90);
     }
+
+    stack_stepper.run();
+    loader_stepper.run();
+    shooter_adjuster_stepper.run();
 }

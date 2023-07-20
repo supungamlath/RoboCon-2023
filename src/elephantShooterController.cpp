@@ -127,12 +127,12 @@ void readValues()
 {
     if (Serial2.read() == 6)
     {
+        l_stick_Y = Serial2.parseInt();
         l_2 = Serial2.parseInt();
         r_2 = Serial2.parseInt();
-        l_stick_Y = Serial2.parseInt();
+        l1_r1_btns = Serial2.parseInt();
         up_down_btns = Serial2.parseInt();
         left_right_btns = Serial2.parseInt();
-        l1_r1_btns = Serial2.parseInt();
         cmd_btns = Serial2.parseInt();
     }
 }

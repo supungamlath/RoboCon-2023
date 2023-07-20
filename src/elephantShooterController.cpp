@@ -17,12 +17,14 @@ const float stack_ring_height_step = 1.0;
 // Shooter Motor
 const int FdShooterMotor = 26;
 const int BkShooterMotor = 25;
-
 const int ShooterStopServoPin = 22;
+
+const int ShooterStopServoPin = 32;
 
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 21;
 const int ShooterAdjusterDirPin = 19;
+const int ShooterAdjusterLimitSwitchPin = 22;
 const float adjuster_step_size = 0.5;
 
 const int deadzone = 10;
@@ -82,7 +84,7 @@ void setup()
     loader_stepper.setStepsPerRotation(200);
     loader_stepper.setDistancePerRotation(4.8);
     attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
-    loader_stepper.runRelative(-100.0);
+    loader_stepper.moveToDistance(-52.0);
 
     // Stack Stepper initialization
     stack_stepper.setAcceleration(stack_acceleration);
@@ -90,7 +92,7 @@ void setup()
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(4.3);
     attachInterrupt(StackLimitSwitchPin, stackLimitHit, FALLING);
-    stack_stepper.runRelative(100.0);
+    stack_stepper.moveToDistance(100.0);
 
     // Shooter Adjuster initialization
     shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
@@ -108,13 +110,11 @@ void setup()
 void IRAM_ATTR stackLimitHit()
 {
     stack_stepper.setCurrentPosition(0);
-    stack_stepper.stop();
 }
 
 void IRAM_ATTR loaderLimitHit()
 {
     loader_stepper.setCurrentPosition(0);
-    loader_stepper.stop();
 }
 
 void loop()
@@ -177,10 +177,10 @@ void calculateValues()
     stack_fine_step = 0.001 * l_stick_Y;
 
     // set loader move
-    // if (loader_stepper.currentPosition() == loader_stepper.targetPosition())
-    //     loader_move = left_right_btns;
-    // else
-    //     loader_move = 0;
+    if (loader_stepper.currentPosition() == loader_stepper.targetPosition())
+        loader_move = left_right_btns;
+    else
+        loader_move = 0;
 }
 
 void driveActuators()
@@ -218,14 +218,14 @@ void driveActuators()
     }
 
     // Loader Motor
-    // if (loader_move == 1)
-    // {
-    //     loader_stepper.moveToDistance(loader_left_position);
-    // }
-    // else if (loader_move == -1)
-    // {
-    //     loader_stepper.moveToDistance(loader_right_position);
-    // }
+    if (loader_move == 1)
+    {
+        loader_stepper.moveToDistance(loader_left_position);
+    }
+    else if (loader_move == -1)
+    {
+        loader_stepper.moveToDistance(loader_right_position);
+    }
 
     // Shooter Adjuster Motor
     if (adjuster_move == 1)

@@ -16,7 +16,7 @@ const float stack_ring_height_step = 1.0;
 // Shooter Motor
 const int FdShooterMotor = 26;
 const int BkShooterMotor = 25;
-const int ShooterStopLimitPin = 22;
+const int ShooterStopLimitPin = 32;
 
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 21;

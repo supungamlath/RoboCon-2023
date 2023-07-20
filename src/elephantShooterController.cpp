@@ -224,9 +224,8 @@ void driveActuators()
     if (cmd_btns == 3)
     {
         shooter_adjuster_stepper.runToNewDistance(loader_left_position);
-        delay(1000);
-        // engage servo
-        shooter_adjuster_stepper.runToNewDistance(loader_left_position);
+
+        shooter_adjuster_stepper.runToNewDistance(loader_right_position);
     }
 
     if (cmd_btns == 4)

@@ -80,7 +80,8 @@ void setup()
     loader_stepper.setStepsPerRotation(200);
     loader_stepper.setDistancePerRotation(4.8);
     attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
-    loader_stepper.moveToDistance(-52.0);
+    if (digitalRead(LoaderLimitSwitchPin))
+        loader_stepper.moveToDistance(-52.0);
 
     // Stack Stepper initialization
     stack_stepper.setAcceleration(stack_acceleration);
@@ -88,7 +89,8 @@ void setup()
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(4.3);
     attachInterrupt(StackLimitSwitchPin, stackLimitHit, FALLING);
-    stack_stepper.moveToDistance(100.0);
+    if (digitalRead(StackLimitSwitchPin))
+        stack_stepper.moveToDistance(100.0);
 
     // Shooter Adjuster initialization
     shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
@@ -96,7 +98,8 @@ void setup()
     shooter_adjuster_stepper.setStepsPerRotation(200);
     shooter_adjuster_stepper.setDistancePerRotation(1.0);
     attachInterrupt(ShooterAdjusterLimitSwitchPin, adjusterHitLimit, FALLING);
-    shooter_adjuster_stepper.moveToDistance(-50.0);
+    if (digitalRead(ShooterAdjusterLimitSwitchPin))
+        shooter_adjuster_stepper.moveToDistance(50.0);
 
     Serial.begin(115200);
     Serial2.begin(115200);
@@ -150,7 +153,7 @@ void calculateFreeMotion()
     {
         shooter_motor_val = l_2;
     }
-    else if (r_2 > 0 && digitalRead(ShooterStopLimitPin) == HIGH)
+    else if (r_2 > 0 && digitalRead(ShooterStopLimitPin))
     {
         shooter_motor_val = -1 * r_2;
     }
@@ -268,6 +271,6 @@ void calculatePresetMotion()
 
     if (cmd_btns == 4)
     {
-        shooter_adjuster_stepper.moveTo(shooter_adjuster_stepper_min_position);
+        shooter_adjuster_stepper.moveTo(shooter_adjuster_stepper_bottom_position);
     }
 }

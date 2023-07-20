@@ -16,12 +16,12 @@ const float stack_ring_height_step = 1.0;
 // Shooter Motor
 const int FdShooterMotor = 26;
 const int BkShooterMotor = 25;
-const int ShooterStopLimitPin = 32;
+const int ShooterStopLimitPin = 18;
 
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 21;
 const int ShooterAdjusterDirPin = 19;
-const int ShooterAdjusterLimitSwitchPin = 33;
+const int ShooterAdjusterLimitSwitchPin = 14;
 const float adjuster_step_size = 0.5;
 
 const int deadzone = 10;
@@ -83,7 +83,7 @@ void setup()
     loader_stepper.setDistancePerRotation(4.8);
     attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
     if (digitalRead(LoaderLimitSwitchPin))
-        loader_stepper.moveToDistance(-52.0);
+        loader_stepper.moveToDistance(-200.0);
 
     // Stack Stepper initialization
     stack_stepper.setAcceleration(stack_acceleration);

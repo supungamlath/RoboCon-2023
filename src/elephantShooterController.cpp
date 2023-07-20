@@ -52,7 +52,7 @@ float loader_acceleration = 800;
 
 // Shooter adjuster stepper
 AccelStepperWithDistance shooter_adjuster_stepper(AccelStepperWithDistance::DRIVER, ShooterAdjusterStepPin, ShooterAdjusterDirPin);
-float shooter_adjuster_stepper_top_position = -20.0;
+float shooter_adjuster_stepper_top_position = -35.0;
 float shooter_adjuster_stepper_bottom_position = 0.0;
 float shooter_adjuster_stepper_speed = 500;
 float shooter_adjuster_stepper_acceleration = 500;

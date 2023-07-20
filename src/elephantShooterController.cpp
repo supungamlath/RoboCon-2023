@@ -5,12 +5,13 @@
 // Shooter pinouts
 const int LoaderStepPin = 2;
 const int LoaderDirPin = 4;
-const int LoaderLimitSwitchPin = 5;
+const int LoaderLimitSwitchPin = 33;
+const float loader_position_step = 1.0;
 
 // Stack pinouts
 const int StackStepPin = 12;
 const int StackDirPin = 13;
-const int StackLimitSwitchPin = 14;
+const int StackLimitSwitchPin = 23;
 const float stack_position_step = 1.0;
 
 // Shooter Motor
@@ -30,6 +31,7 @@ int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left_right_btns = 0, up_down_btns = 0, l1_r1_btns = 0, cmd_btns = 0;
 int shooter_motor_val = 0;
 float loader_position = 0.0;
+int loader_move = 0;
 int adjuster_move = 0, stack_move = 0;
 long lastMillis = 0;
 
@@ -42,10 +44,10 @@ float stack_acceleration = 1000;
 
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
-float loader_left_position = -50.0;
+float loader_left_position = 52.0;
 float loader_right_position = 0.0;
 float loader_speed = 1000;
-float loader_acceleration = 800;
+float loader_acceleration = 1000;
 
 // Shooter adjuster stepper
 AccelStepperWithDistance shooter_adjuster_stepper(AccelStepperWithDistance::DRIVER, ShooterAdjusterStepPin, ShooterAdjusterDirPin);
@@ -77,14 +79,14 @@ void setup()
     stack_stepper.setMaxSpeed(stack_speed);
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(4.3);
-    // attachInterrupt(StackLimitSwitchPin, stackLimitHit, FALLING);
+    attachInterrupt(StackLimitSwitchPin, stackLimitHit, FALLING);
 
     // Loader initialization
     loader_stepper.setAcceleration(loader_acceleration);
     loader_stepper.setMaxSpeed(loader_speed);
     loader_stepper.setStepsPerRotation(200);
-    loader_stepper.setDistancePerRotation(1.0);
-    // attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
+    loader_stepper.setDistancePerRotation(4.8);
+    attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
 
     // Shooter Adjuster initialization
     shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
@@ -103,12 +105,14 @@ void IRAM_ATTR stackLimitHit()
 {
     stack_stepper.setCurrentPosition(0);
     stack_stepper.stop();
+    Serial.println("Stack limit hit");
 }
 
 void IRAM_ATTR loaderLimitHit()
 {
     loader_stepper.setCurrentPosition(0);
     loader_stepper.stop();
+    Serial.println("Loader limit hit");
 }
 
 void loop()
@@ -163,11 +167,11 @@ void calculateValues()
     // l_stick_Y = (l_stick_Y < -10 ? l_stick_Y : (l_stick_Y > 10 ? l_stick_Y : 0));
     // stack_position_step = 0.01 * l_stick_Y;
 
-    // set loader value
-    if (left_right_btns == 1)
-        loader_position = loader_left_position;
-    else if (left_right_btns == -1)
-        loader_position = loader_right_position;
+    // set loader move
+    if (loader_stepper.currentPosition() == loader_stepper.targetPosition())
+        loader_move = left_right_btns;
+    else
+        loader_move = 0;
 }
 
 void driveActuators()
@@ -200,7 +204,14 @@ void driveActuators()
     }
 
     // Loader Motor
-    loader_stepper.moveToDistance(loader_position);
+    if (loader_move == 1)
+    {
+        loader_stepper.moveToDistance(loader_left_position);
+    }
+    else if (loader_move == -1)
+    {
+        loader_stepper.moveToDistance(loader_right_position);
+    }
 
     // Shooter Adjuster Motor
     if (adjuster_move == 1)
@@ -218,7 +229,7 @@ void driveActuators()
         if (stack_stepper.targetPosition() == stack_top_position)
             stack_stepper.moveTo(stack_bottom_position);
         else
-            stack_stepper.moveTo(stack_top_position - 14.0);
+            stack_stepper.moveTo(stack_top_position + 14.0);
     }
 
     if (cmd_btns == 3)

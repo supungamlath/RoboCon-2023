@@ -21,7 +21,7 @@ const int deadzone = 10;
 
 bool isPS4Connected = false;
 
-int x = 0, y = 0;
+int x = 0, y = 0, z = 0;
 int m1_pow = 0, m2_pow = 0, m3_pow = 0, m4_pow = 0;
 long data_rate = 20, prev_time = 0, current_time = 0;
 
@@ -78,9 +78,11 @@ void loop()
     {
         x = PS4.RStickX();
         y = PS4.RStickY();
+        z = PS4.LStickY();
 
         x = (x < -deadzone ? x : (x > deadzone ? x : 0));
         y = (y < -deadzone ? y : (y > deadzone ? y : 0));
+        z = (z < -deadzone ? z : (z > deadzone ? z : 0));
 
         CalculateMotorSpeeds();
         SetMotorSpeeds();
@@ -163,18 +165,17 @@ void SendValuesToShooter()
     Serial2.print(ack);
 
     // Stack controller values
-    Serial2.println(PS4.LStickY());
+    Serial2.println(z);
 
     // Loader controller values
     Serial2.println(PS4.L2Value());
     Serial2.println(PS4.R2Value());
 
-    int up_down_btns = (PS4.Up() == 1 ? 1 : (PS4.Down() == 1 ? -1 : 0));
-    Serial2.println(up_down_btns);
-    int left_right_btns = (PS4.Left() == 1 ? 1 : (PS4.Right() == 1 ? -1 : 0));
-    Serial2.println(left_right_btns);
-    int l1_r1_btns = (PS4.L1() == 1 ? 1 : (PS4.R1() == 1 ? -1 : 0));
-    Serial2.println(l1_r1_btns);
-    int cmd_btns = (PS4.Triangle() == 1 ? 1 : (PS4.Circle() == 1 ? 2 : (PS4.Cross() == 1 ? 3 : (PS4.Square() == 1 ? 4 : 0))));
-    Serial2.println(cmd_btns);
+    Serial2.println(PS4.Left());
+    Serial2.println(PS4.Right());
+
+    Serial2.println(PS4.Up());
+    Serial2.println(PS4.Down());
+
+    Serial2.println(PS4.Cross());
 }

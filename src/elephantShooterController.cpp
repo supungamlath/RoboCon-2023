@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <AccelStepperWithDistance.h>
-#include <ESP32Servo.h>
 
 // Shooter pinouts
 const int LoaderStepPin = 2;
@@ -17,9 +16,7 @@ const float stack_ring_height_step = 1.0;
 // Shooter Motor
 const int FdShooterMotor = 26;
 const int BkShooterMotor = 25;
-const int ShooterStopServoPin = 22;
-
-const int ShooterStopServoPin = 32;
+const int ShooterStopLimitPin = 22;
 
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 21;
@@ -59,9 +56,6 @@ float shooter_adjuster_stepper_min_position = 0;
 float shooter_adjuster_stepper_speed = 500;
 float shooter_adjuster_stepper_acceleration = 500;
 
-Servo shooter_stop_servo;
-
-// put function declarations here:
 void readValues();
 void calculateFreeMotion();
 void calculatePresetMotion();
@@ -74,9 +68,10 @@ void setup()
     // Shooter Motor Initialization
     pinMode(FdShooterMotor, OUTPUT);
     pinMode(BkShooterMotor, OUTPUT);
-    pinMode(ShooterStopServoPin, OUTPUT);
+    pinMode(ShooterStopLimitPin, OUTPUT);
     pinMode(LoaderLimitSwitchPin, INPUT_PULLUP);
     pinMode(StackLimitSwitchPin, INPUT_PULLUP);
+    pinMode(ShooterAdjusterLimitSwitchPin, INPUT_PULLUP);
 
     // Loader initialization
     loader_stepper.setAcceleration(loader_acceleration);
@@ -99,9 +94,6 @@ void setup()
     shooter_adjuster_stepper.setMaxSpeed(shooter_adjuster_stepper_speed);
     shooter_adjuster_stepper.setStepsPerRotation(200);
     shooter_adjuster_stepper.setDistancePerRotation(1.0);
-
-    // Servo initialization
-    shooter_stop_servo.attach(ShooterStopServoPin);
 
     Serial.begin(115200);
     Serial2.begin(115200);
@@ -267,14 +259,5 @@ void calculatePresetMotion()
     if (cmd_btns == 4)
     {
         shooter_adjuster_stepper.moveTo(shooter_adjuster_stepper_min_position);
-    }
-
-    if (abs(shooter_adjuster_stepper.getCurrentPositionDistance() - shooter_adjuster_stepper_max_position) < 5)
-    {
-        shooter_stop_servo.write(0);
-    }
-    else
-    {
-        shooter_stop_servo.write(90);
     }
 }

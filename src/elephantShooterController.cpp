@@ -30,9 +30,10 @@ int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left_right_btns = 0, up_down_btns = 0, l1_r1_btns = 0, cmd_btns = 0;
 int shooter_motor_val = 0;
 float loader_position = 0.0;
+float adjuster_position = 0.0;
 float stack_fine_step = 0.0;
 int loader_move = 0;
-int adjuster_move = 0, stack_move = 0;
+int stack_move = 0;
 long lastMillis = 0;
 
 // Stack Stepper instance - distance
@@ -149,6 +150,23 @@ void readValues()
 void calculateFreeMotion()
 {
     // set shooter and adjuster value
+    if (shooter_adjuster_stepper.currentPosition() == shooter_adjuster_stepper.targetPosition())
+    {
+        if (up_down_btns == 1)
+        {
+            adjuster_position += -1 * adjuster_step_size;
+            shooter_motor_val = 0.8;
+        }
+        else if (up_down_btns == -1)
+        {
+            adjuster_position += adjuster_step_size;
+        }
+        else
+        {
+            shooter_motor_val = 0;
+        }
+    }
+
     if (l_2 > 0)
     {
         shooter_motor_val = l_2;
@@ -156,20 +174,6 @@ void calculateFreeMotion()
     else if (r_2 > 0 && digitalRead(ShooterStopLimitPin))
     {
         shooter_motor_val = -1 * r_2;
-    }
-    else if (up_down_btns == 1)
-    {
-        adjuster_move = -1;
-        shooter_motor_val = 0.8;
-    }
-    else if (up_down_btns == -1)
-    {
-        adjuster_move = 1;
-    }
-    else
-    {
-        adjuster_move = 0;
-        shooter_motor_val = 0;
     }
 
     // set stack move
@@ -186,6 +190,40 @@ void calculateFreeMotion()
         loader_move = left_right_btns;
     else
         loader_move = 0;
+}
+
+void calculatePresetMotion()
+{
+    // Ring pickup operation
+    if (cmd_btns == 1)
+    {
+        if (stack_stepper.getCurrentPositionDistance() > stack_bottom_position)
+        {
+            stack_stepper.moveToDistance(stack_bottom_position);
+        }
+        else
+        {
+            stack_stepper.moveToDistance(stack_top_position - 14.0);
+        }
+    }
+
+    // Ring plate reload operation
+    if (cmd_btns == 2)
+    {
+        if (shooter_adjuster_stepper.getCurrentPositionDistance() > shooter_adjuster_stepper_top_position)
+        {
+            shooter_adjuster_stepper.moveToDistance(shooter_adjuster_stepper_top_position);
+        }
+        else
+        {
+            shooter_adjuster_stepper.moveToDistance(shooter_adjuster_stepper_bottom_position);
+        }
+    }
+
+    // if (cmd_btns == 4)
+    // {
+    //     shooter_adjuster_stepper.moveTo(shooter_adjuster_stepper_bottom_position);
+    // }
 }
 
 void driveActuators()
@@ -233,50 +271,9 @@ void driveActuators()
     }
 
     // Shooter Adjuster Motor
-    if (adjuster_move == 1)
-    {
-        shooter_adjuster_stepper.moveRelative(adjuster_step_size);
-    }
-    else if (adjuster_move == -1)
-    {
-        shooter_adjuster_stepper.moveRelative(-adjuster_step_size);
-    }
+    shooter_adjuster_stepper.moveToDistance(adjuster_position);
 
     stack_stepper.run();
     loader_stepper.run();
     shooter_adjuster_stepper.run();
-}
-
-void calculatePresetMotion()
-{
-    // Ring pickup operation
-    if (cmd_btns == 1)
-    {
-        if (stack_stepper.getCurrentPositionDistance() > stack_bottom_position)
-        {
-            stack_stepper.moveToDistance(stack_bottom_position);
-        }
-        else
-        {
-            stack_stepper.moveToDistance(stack_top_position - 14.0);
-        }
-    }
-
-    // Ring plate reload operation
-    if (cmd_btns == 2)
-    {
-        if (shooter_adjuster_stepper.getCurrentPositionDistance() > shooter_adjuster_stepper_top_position)
-        {
-            shooter_adjuster_stepper.moveToDistance(shooter_adjuster_stepper_top_position);
-        }
-        else
-        {
-            shooter_adjuster_stepper.moveToDistance(shooter_adjuster_stepper_bottom_position);
-        }
-    }
-
-    // if (cmd_btns == 4)
-    // {
-    //     shooter_adjuster_stepper.moveTo(shooter_adjuster_stepper_bottom_position);
-    // }
 }

@@ -51,8 +51,8 @@ float loader_acceleration = 800;
 
 // Shooter adjuster stepper
 AccelStepperWithDistance shooter_adjuster_stepper(AccelStepperWithDistance::DRIVER, ShooterAdjusterStepPin, ShooterAdjusterDirPin);
-float shooter_adjuster_stepper_max_position = 30;
-float shooter_adjuster_stepper_min_position = 0;
+float shooter_adjuster_stepper_top_position = 30;
+float shooter_adjuster_stepper_bottom_position = 0;
 float shooter_adjuster_stepper_speed = 500;
 float shooter_adjuster_stepper_acceleration = 500;
 
@@ -62,13 +62,14 @@ void calculatePresetMotion();
 void driveActuators();
 void IRAM_ATTR stackLimitHit();
 void IRAM_ATTR loaderLimitHit();
+void IRAM_ATTR adjusterHitLimit();
 
 void setup()
 {
     // Shooter Motor Initialization
     pinMode(FdShooterMotor, OUTPUT);
     pinMode(BkShooterMotor, OUTPUT);
-    pinMode(ShooterStopLimitPin, OUTPUT);
+    pinMode(ShooterStopLimitPin, INPUT_PULLUP);
     pinMode(LoaderLimitSwitchPin, INPUT_PULLUP);
     pinMode(StackLimitSwitchPin, INPUT_PULLUP);
     pinMode(ShooterAdjusterLimitSwitchPin, INPUT_PULLUP);
@@ -94,6 +95,8 @@ void setup()
     shooter_adjuster_stepper.setMaxSpeed(shooter_adjuster_stepper_speed);
     shooter_adjuster_stepper.setStepsPerRotation(200);
     shooter_adjuster_stepper.setDistancePerRotation(1.0);
+    attachInterrupt(ShooterAdjusterLimitSwitchPin, adjusterHitLimit, FALLING);
+    shooter_adjuster_stepper.moveToDistance(-50.0);
 
     Serial.begin(115200);
     Serial2.begin(115200);
@@ -103,10 +106,13 @@ void IRAM_ATTR stackLimitHit()
 {
     stack_stepper.setCurrentPosition(0);
 }
-
 void IRAM_ATTR loaderLimitHit()
 {
     loader_stepper.setCurrentPosition(0);
+}
+void IRAM_ATTR adjusterHitLimit()
+{
+    shooter_adjuster_stepper.setCurrentPosition(0);
 }
 
 void loop()
@@ -144,10 +150,9 @@ void calculateFreeMotion()
     {
         shooter_motor_val = l_2;
     }
-    else if (r_2 > 0)
+    else if (r_2 > 0 && digitalRead(ShooterStopLimitPin) == HIGH)
     {
-        if (digitalRead(ShooterStopLimitPin) == HIGH)
-            shooter_motor_val = -1 * r_2;
+        shooter_motor_val = -1 * r_2;
     }
     else if (up_down_btns == 1)
     {

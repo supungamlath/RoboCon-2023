@@ -40,7 +40,8 @@ AccelStepperWithDistance stack_stepper(AccelStepperWithDistance::DRIVER, StackSt
 float stack_bottom_position = -60.0;
 float stack_top_position = 0.0;
 float stack_speed = 1000;
-float stack_acceleration = 1000;
+float stack_low_acceleration = 20;
+float stack_rapid_acceleration = 1000;
 
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
@@ -76,7 +77,7 @@ void setup()
     pinMode(StackLimitSwitchPin, INPUT_PULLUP);
 
     // Stack Stepper initialization
-    stack_stepper.setAcceleration(stack_acceleration);
+    stack_stepper.setAcceleration(stack_low_acceleration);
     stack_stepper.setMaxSpeed(stack_speed);
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(4.3);
@@ -202,6 +203,7 @@ void driveActuators()
     // Stack Motor
     if (stack_move == 1)
     {
+        stack_stepper.setAcceleration(20);
         stack_stepper.moveRelative(stack_position_step);
     }
     else if (stack_move == -1)
@@ -239,10 +241,12 @@ void calculatePresetMotion()
     // Reload operation
     if (cmd_btns == 1)
     {
+        stack_stepper.setAcceleration(stack_rapid_acceleration);
         if (stack_stepper.targetPosition() == stack_top_position)
             stack_stepper.moveTo(stack_bottom_position);
         else
             stack_stepper.moveTo(stack_top_position + 14.0);
+        stack_stepper.setAcceleration(stack_low_acceleration);
     }
 
     if (cmd_btns == 3)

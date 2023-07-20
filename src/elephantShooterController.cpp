@@ -42,8 +42,8 @@ float stack_acceleration = 1000;
 
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
-float loader_max_position = 0;
-float loader_min_position = 12;
+float loader_max_position = 10;
+float loader_min_position = 0;
 float loader_speed = 1000;
 float loader_acceleration = 800;
 
@@ -72,19 +72,19 @@ void setup()
     stack_stepper.setAcceleration(stack_acceleration);
     stack_stepper.setMaxSpeed(stack_speed);
     stack_stepper.setStepsPerRotation(200);
-    stack_stepper.setDistancePerRotation(0.204);
+    stack_stepper.setDistancePerRotation(4.3);
 
     // Load Trigger initialization
     loader_stepper.setAcceleration(loader_acceleration);
     loader_stepper.setMaxSpeed(loader_speed);
-    stack_stepper.setStepsPerRotation(200);
-    stack_stepper.setDistancePerRotation(0.8);
+    loader_stepper.setStepsPerRotation(200);
+    loader_stepper.setDistancePerRotation(1.0);
 
     // Shooter Adjuster initialization
     shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
     shooter_adjuster_stepper.setMaxSpeed(shooter_adjuster_stepper_speed);
     shooter_adjuster_stepper.setStepsPerRotation(200);
-    shooter_adjuster_stepper.setDistancePerRotation(0.8);
+    shooter_adjuster_stepper.setDistancePerRotation(1.0);
 
     // Servo initialization
     shooter_stop_servo.attach(ShooterStopServoPin);
@@ -124,7 +124,7 @@ void calculateValues()
     else if (up_down_btns == 1)
     {
         adjuster_move = -1;
-        shooter_motor_val = 3;
+        shooter_motor_val = 0.8;
     }
     else if (up_down_btns == -1)
     {
@@ -147,9 +147,9 @@ void calculateValues()
 
     // set loader value
     if (left_right_btns == 1)
-        loader_position = loader_min_position;
-    else if (left_right_btns == -1)
         loader_position = loader_max_position;
+    else if (left_right_btns == -1)
+        loader_position = loader_min_position;
 }
 
 void driveActuators()
@@ -198,12 +198,27 @@ void driveActuators()
     shooter_adjuster_stepper.run();
 
     // Reload operation
+    if (cmd_btns == 1)
+    {
+        if (stack_stepper.getCurrentPositionDistance() < stack_max_position)
+            stack_stepper.moveTo(stack_max_position);
+        else
+            stack_stepper.moveTo(stack_min_position);
+        shooter_adjuster_stepper.run();
+    }
+
     if (cmd_btns == 3)
     {
         shooter_adjuster_stepper.runToNewDistance(loader_max_position);
         delay(1000);
         // engage servo
         shooter_adjuster_stepper.runToNewDistance(loader_min_position);
+    }
+
+    if (cmd_btns == 4)
+    {
+        shooter_adjuster_stepper.moveTo(shooter_adjuster_stepper_min_position);
+        shooter_adjuster_stepper.run();
     }
 
     if (abs(shooter_adjuster_stepper.getCurrentPositionDistance() - shooter_adjuster_stepper_max_position) < 5)

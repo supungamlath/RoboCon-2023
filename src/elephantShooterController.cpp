@@ -211,14 +211,14 @@ void calculatePresetMotion()
     // Ring plate reload operation
     if (cmd_btns == 2)
     {
-        saved_adjuster_position = adjuster_position;
+        // saved_adjuster_position = adjuster_position;
         if (shooter_adjuster_stepper.getCurrentPositionDistance() > shooter_adjuster_stepper_top_position)
         {
-            adjuster_position = shooter_adjuster_stepper_top_position;
+            shooter_adjuster_stepper.moveToDistance(shooter_adjuster_stepper_top_position);
         }
         else
         {
-            adjuster_position = saved_adjuster_position;
+            shooter_adjuster_stepper.moveToDistance(adjuster_position);
         }
     }
 
@@ -273,7 +273,7 @@ void driveActuators()
     }
 
     // Shooter Adjuster Motor
-    if (digitalRead(ShooterAdjusterLimitSwitchPin))
+    if (up_down_btns != 0)
     {
         shooter_adjuster_stepper.moveToDistance(adjuster_position);
     }

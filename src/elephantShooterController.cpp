@@ -63,7 +63,7 @@ Servo shooter_stop_servo;
 
 // put function declarations here:
 void readValues();
-void calculateValues();
+void calculateFreeMotion();
 void calculatePresetMotion();
 void driveActuators();
 void IRAM_ATTR stackLimitHit();
@@ -122,7 +122,7 @@ void loop()
     readValues();      // Get values from Master ESP32
     if (cmd_btns == 0) // If a command button is not pressed
     {
-        calculateValues();
+        calculateFreeMotion();
     }
     else // If a command button is pressed
     {
@@ -135,9 +135,9 @@ void readValues()
 {
     if (Serial2.read() == 6)
     {
-        l_stick_Y = Serial2.parseInt();
         l_2 = Serial2.parseInt();
         r_2 = Serial2.parseInt();
+        l_stick_Y = Serial2.parseInt();
         up_down_btns = Serial2.parseInt();
         left_right_btns = Serial2.parseInt();
         l1_r1_btns = Serial2.parseInt();
@@ -145,7 +145,7 @@ void readValues()
     }
 }
 
-void calculateValues()
+void calculateFreeMotion()
 {
     // set shooter and adjuster value
     if (l_2 > 0)

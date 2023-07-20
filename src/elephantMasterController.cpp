@@ -76,9 +76,9 @@ void loop()
 {
     if (isPS4Connected)
     {
-        x = PS4.RStickX();
-        y = PS4.RStickY();
-        z = PS4.LStickY();
+        y = PS4.RStickX();
+        x = PS4.RStickY();
+        z = PS4.LStickX();
 
         x = (x < -deadzone ? x : (x > deadzone ? x : 0));
         y = (y < -deadzone ? y : (y > deadzone ? y : 0));
@@ -105,10 +105,14 @@ void CalculateMotorSpeeds()
 {
     // Should be multiplied by 2 for full power utilization
     // Should be multiplied by 2 for full power utilization
-    m1_pow = 2 * (x - y);
-    m2_pow = 2 * (x + y);
-    m3_pow = 2 * (x - y);
-    m4_pow = 2 * (x + y);
+    // m1_pow = 2 * (x - y);
+    // m2_pow = 2 * (x + y);
+    // m3_pow = 2 * (x - y);
+    // m4_pow = 2 * (x + y);
+    m1_pow = 2 * (y - x - z);
+    m2_pow = 2 * (y + x + z);
+    m3_pow = 2 * (y + x - z);
+    m4_pow = 2 * (y - x + z);
     m1_pow = constrain(m1_pow, -255, 255);
     m2_pow = constrain(m2_pow, -255, 255);
     m3_pow = constrain(m3_pow, -255, 255);
@@ -163,19 +167,13 @@ void SendValuesToShooter()
 {
     char ack = 6;
     Serial2.print(ack);
-
-    // Stack controller values
-    Serial2.println(z);
-
-    // Loader controller values
     Serial2.println(PS4.L2Value());
     Serial2.println(PS4.R2Value());
-
-    Serial2.println(PS4.Left());
-    Serial2.println(PS4.Right());
-
-    Serial2.println(PS4.Up());
-    Serial2.println(PS4.Down());
-
-    Serial2.println(PS4.Cross());
+    Serial2.println(PS4.LStickY());
+    int up_down_btns = (PS4.Up() == 1 ? 1 : (PS4.Down() == 1 ? -1 : 0));
+    Serial2.println(up_down_btns);
+    int left_right_btns = (PS4.Left() == 1 ? 1 : (PS4.Right() == 1 ? -1 : 0));
+    Serial2.println(left_right_btns);
+    int cmd_btns = (PS4.Triangle() == 1 ? 1 : (PS4.Circle() == 1 ? 2 : (PS4.Cross() == 1 ? 3 : (PS4.Square() == 1 ? 4 : 0))));
+    Serial2.println(cmd_btns);
 }

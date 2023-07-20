@@ -5,10 +5,12 @@
 // Shooter pinouts
 const int LoaderStepPin = 2;
 const int LoaderDirPin = 4;
+const int LoaderLimitSwitchPin = 5;
 
 // Stack pinouts
 const int StackStepPin = 12;
 const int StackDirPin = 13;
+const int StackLimitSwitchPin = 14;
 const float stack_position_step = 1.0;
 
 // Shooter Motor

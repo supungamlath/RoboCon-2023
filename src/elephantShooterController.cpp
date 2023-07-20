@@ -141,9 +141,14 @@ void calculateFreeMotion()
 {
     // set shooter and adjuster value
     if (l_2 > 0)
+    {
         shooter_motor_val = l_2;
+    }
     else if (r_2 > 0)
-        shooter_motor_val = -1 * r_2;
+    {
+        if (digitalRead(ShooterStopLimitPin) == HIGH)
+            shooter_motor_val = -1 * r_2;
+    }
     else if (up_down_btns == 1)
     {
         adjuster_move = -1;

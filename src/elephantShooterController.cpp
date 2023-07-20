@@ -51,8 +51,8 @@ float loader_acceleration = 800;
 
 // Shooter adjuster stepper
 AccelStepperWithDistance shooter_adjuster_stepper(AccelStepperWithDistance::DRIVER, ShooterAdjusterStepPin, ShooterAdjusterDirPin);
-float shooter_adjuster_stepper_top_position = 30;
-float shooter_adjuster_stepper_bottom_position = 0;
+float shooter_adjuster_stepper_top_position = -20.0;
+float shooter_adjuster_stepper_bottom_position = 0.0;
 float shooter_adjuster_stepper_speed = 500;
 float shooter_adjuster_stepper_acceleration = 500;
 
@@ -249,7 +249,7 @@ void driveActuators()
 
 void calculatePresetMotion()
 {
-    // Reload operation
+    // Ring pickup operation
     if (cmd_btns == 1)
     {
         if (stack_stepper.getCurrentPositionDistance() > stack_bottom_position)
@@ -262,15 +262,21 @@ void calculatePresetMotion()
         }
     }
 
-    if (cmd_btns == 3)
+    // Ring plate reload operation
+    if (cmd_btns == 2)
     {
-        shooter_adjuster_stepper.runToNewDistance(loader_left_position);
-
-        shooter_adjuster_stepper.runToNewDistance(loader_right_position);
+        if (shooter_adjuster_stepper.getCurrentPositionDistance() > shooter_adjuster_stepper_top_position)
+        {
+            shooter_adjuster_stepper.moveToDistance(shooter_adjuster_stepper_top_position);
+        }
+        else
+        {
+            shooter_adjuster_stepper.moveToDistance(shooter_adjuster_stepper_bottom_position);
+        }
     }
 
-    if (cmd_btns == 4)
-    {
-        shooter_adjuster_stepper.moveTo(shooter_adjuster_stepper_bottom_position);
-    }
+    // if (cmd_btns == 4)
+    // {
+    //     shooter_adjuster_stepper.moveTo(shooter_adjuster_stepper_bottom_position);
+    // }
 }

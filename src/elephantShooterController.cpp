@@ -61,6 +61,7 @@ Servo shooter_stop_servo;
 // put function declarations here:
 void readValues();
 void calculateValues();
+void calculatePresetMotion();
 void driveActuators();
 void IRAM_ATTR stackLimitHit();
 void IRAM_ATTR loaderLimitHit();
@@ -118,8 +119,15 @@ void IRAM_ATTR loaderLimitHit()
 void loop()
 {
     readValues();      // Get values from Master ESP32
-    calculateValues(); // Calculate direction and PWM of each motor
-    driveActuators();  // Drive each motor
+    if (cmd_btns == 0) // If a command button is not pressed
+    {
+        calculateValues();
+    }
+    else // If a command button is pressed
+    {
+        calculatePresetMotion();
+    }
+    driveActuators(); // Drive each motor
 }
 
 void readValues()
@@ -159,7 +167,7 @@ void calculateValues()
     }
 
     // set stack move
-    if (stack_stepper.currentPosition() == stack_stepper.targetPosition())
+    if (!stack_stepper.run())
         stack_move = l1_r1_btns;
     else
         stack_move = 0;
@@ -223,6 +231,13 @@ void driveActuators()
         shooter_adjuster_stepper.moveRelative(-adjuster_step_size);
     }
 
+    stack_stepper.run();
+    loader_stepper.run();
+    shooter_adjuster_stepper.run();
+}
+
+void calculatePresetMotion()
+{
     // Reload operation
     if (cmd_btns == 1)
     {
@@ -252,8 +267,4 @@ void driveActuators()
     {
         shooter_stop_servo.write(90);
     }
-
-    stack_stepper.run();
-    loader_stepper.run();
-    shooter_adjuster_stepper.run();
 }

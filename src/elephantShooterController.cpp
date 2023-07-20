@@ -4,7 +4,7 @@
 // Shooter pinouts
 const int LoaderStepPin = 2;
 const int LoaderDirPin = 4;
-const int LoaderLimitSwitchPin = 33;
+const int LoaderLimitSwitchPin = 22;
 const float loader_position_step = 1.0;
 
 // Stack pinouts
@@ -21,7 +21,7 @@ const int ShooterStopLimitPin = 32;
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 21;
 const int ShooterAdjusterDirPin = 19;
-const int ShooterAdjusterLimitSwitchPin = 22;
+const int ShooterAdjusterLimitSwitchPin = 35;
 const float adjuster_step_size = 0.5;
 
 const int deadzone = 10;

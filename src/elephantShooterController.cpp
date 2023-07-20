@@ -60,6 +60,8 @@ Servo shooter_stop_servo;
 void readValues();
 void calculateValues();
 void driveActuators();
+void IRAM_ATTR stackLimitHit();
+void IRAM_ATTR loaderLimitHit();
 
 void setup()
 {
@@ -67,18 +69,22 @@ void setup()
     pinMode(FdShooterMotor, OUTPUT);
     pinMode(BkShooterMotor, OUTPUT);
     pinMode(ShooterStopServoPin, OUTPUT);
+    pinMode(LoaderLimitSwitchPin, INPUT_PULLUP);
+    pinMode(StackLimitSwitchPin, INPUT_PULLUP);
 
     // Stack Stepper initialization
     stack_stepper.setAcceleration(stack_acceleration);
     stack_stepper.setMaxSpeed(stack_speed);
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(4.3);
+    // attachInterrupt(StackLimitSwitchPin, stackLimitHit, FALLING);
 
-    // Load Trigger initialization
+    // Loader initialization
     loader_stepper.setAcceleration(loader_acceleration);
     loader_stepper.setMaxSpeed(loader_speed);
     loader_stepper.setStepsPerRotation(200);
     loader_stepper.setDistancePerRotation(1.0);
+    // attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
 
     // Shooter Adjuster initialization
     shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
@@ -93,11 +99,27 @@ void setup()
     Serial2.begin(115200);
 }
 
+void IRAM_ATTR stackLimitHit()
+{
+    stack_stepper.setCurrentPosition(0);
+    stack_stepper.stop();
+}
+
+void IRAM_ATTR loaderLimitHit()
+{
+    loader_stepper.setCurrentPosition(0);
+    loader_stepper.stop();
+}
+
 void loop()
 {
-    readValues();      // Get values from Master ESP32
-    calculateValues(); // Calculate direction and PWM of each motor
-    driveActuators();  // Drive each motor
+    stack_stepper.moveToDistance(5);
+    loader_stepper.moveToDistance(5);
+    stack_stepper.run();
+    loader_stepper.run();
+    // readValues();      // Get values from Master ESP32
+    // calculateValues(); // Calculate direction and PWM of each motor
+    // driveActuators();  // Drive each motor
 }
 
 void readValues()

@@ -21,7 +21,7 @@ const int ShooterStopLimitPin = 32;
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 21;
 const int ShooterAdjusterDirPin = 19;
-const int ShooterAdjusterLimitSwitchPin = 35;
+const int ShooterAdjusterLimitSwitchPin = 33;
 const float adjuster_step_size = 0.5;
 
 const int deadzone = 10;

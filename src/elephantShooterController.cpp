@@ -30,7 +30,7 @@ int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left_right_btns = 0, up_down_btns = 0, l1_r1_btns = 0, cmd_btns = 0;
 int shooter_motor_val = 0;
 float loader_position = 0.0;
-float adjuster_position = 0.0;
+float adjuster_position = 50.0;
 float stack_fine_step = 0.0;
 int loader_move = 0;
 int stack_move = 0;
@@ -99,8 +99,8 @@ void setup()
     shooter_adjuster_stepper.setStepsPerRotation(200);
     shooter_adjuster_stepper.setDistancePerRotation(1.0);
     attachInterrupt(ShooterAdjusterLimitSwitchPin, adjusterHitLimit, FALLING);
-    if (digitalRead(ShooterAdjusterLimitSwitchPin))
-        shooter_adjuster_stepper.moveToDistance(50.0);
+    // if (digitalRead(ShooterAdjusterLimitSwitchPin))
+    // shooter_adjuster_stepper.moveToDistance(50.0);
 
     Serial.begin(115200);
     Serial2.begin(115200);
@@ -271,7 +271,10 @@ void driveActuators()
     }
 
     // Shooter Adjuster Motor
-    shooter_adjuster_stepper.moveToDistance(adjuster_position);
+    if (digitalRead(ShooterAdjusterLimitSwitchPin))
+    {
+        shooter_adjuster_stepper.moveToDistance(adjuster_position);
+    }
 
     stack_stepper.run();
     loader_stepper.run();

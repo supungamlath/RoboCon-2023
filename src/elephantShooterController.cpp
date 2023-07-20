@@ -12,7 +12,7 @@ const float loader_position_step = 1.0;
 const int StackStepPin = 12;
 const int StackDirPin = 13;
 const int StackLimitSwitchPin = 23;
-const float stack_position_step = 1.0;
+const float stack_ring_height_step = 1.0;
 
 // Shooter Motor
 const int FdShooterMotor = 26;
@@ -31,6 +31,7 @@ int l_2 = 0, r_2 = 0, l_stick_Y = 0;
 int left_right_btns = 0, up_down_btns = 0, l1_r1_btns = 0, cmd_btns = 0;
 int shooter_motor_val = 0;
 float loader_position = 0.0;
+float stack_fine_step = 0.0;
 int loader_move = 0;
 int adjuster_move = 0, stack_move = 0;
 long lastMillis = 0;
@@ -39,16 +40,15 @@ long lastMillis = 0;
 AccelStepperWithDistance stack_stepper(AccelStepperWithDistance::DRIVER, StackStepPin, StackDirPin);
 float stack_bottom_position = -60.0;
 float stack_top_position = 0.0;
-float stack_speed = 1000;
-float stack_low_acceleration = 20;
-float stack_rapid_acceleration = 1000;
+float stack_speed = 600;
+float stack_acceleration = 500;
 
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
 float loader_left_position = 52.0;
 float loader_right_position = 0.0;
-float loader_speed = 1000;
-float loader_acceleration = 1000;
+float loader_speed = 800;
+float loader_acceleration = 800;
 
 // Shooter adjuster stepper
 AccelStepperWithDistance shooter_adjuster_stepper(AccelStepperWithDistance::DRIVER, ShooterAdjusterStepPin, ShooterAdjusterDirPin);
@@ -77,18 +77,19 @@ void setup()
     pinMode(StackLimitSwitchPin, INPUT_PULLUP);
 
     // Stack Stepper initialization
-    stack_stepper.setAcceleration(stack_low_acceleration);
+    stack_stepper.setAcceleration(stack_acceleration);
     stack_stepper.setMaxSpeed(stack_speed);
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(4.3);
     attachInterrupt(StackLimitSwitchPin, stackLimitHit, FALLING);
+    stack_stepper.runRelative(100.0);
 
     // Loader initialization
     loader_stepper.setAcceleration(loader_acceleration);
     loader_stepper.setMaxSpeed(loader_speed);
     loader_stepper.setStepsPerRotation(200);
     loader_stepper.setDistancePerRotation(4.8);
-    attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
+    // attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
 
     // Shooter Adjuster initialization
     shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
@@ -171,8 +172,8 @@ void calculateValues()
     else
         stack_move = 0;
 
-    // l_stick_Y = (l_stick_Y < -10 ? l_stick_Y : (l_stick_Y > 10 ? l_stick_Y : 0));
-    // stack_position_step = 0.01 * l_stick_Y;
+    l_stick_Y = (l_stick_Y < -10 ? l_stick_Y : (l_stick_Y > 10 ? l_stick_Y : 0));
+    stack_fine_step = 0.001 * l_stick_Y;
 
     // set loader move
     if (loader_stepper.currentPosition() == loader_stepper.targetPosition())
@@ -203,12 +204,16 @@ void driveActuators()
     // Stack Motor
     if (stack_move == 1)
     {
-        stack_stepper.setAcceleration(20);
-        stack_stepper.moveRelative(stack_position_step);
+        stack_stepper.moveRelative(stack_ring_height_step);
     }
     else if (stack_move == -1)
     {
-        stack_stepper.moveRelative(-stack_position_step);
+        stack_stepper.moveRelative(-stack_ring_height_step);
+    }
+
+    if (stack_fine_step != 0)
+    {
+        stack_stepper.moveRelative(stack_fine_step);
     }
 
     // Loader Motor
@@ -241,12 +246,14 @@ void calculatePresetMotion()
     // Reload operation
     if (cmd_btns == 1)
     {
-        stack_stepper.setAcceleration(stack_rapid_acceleration);
-        if (stack_stepper.targetPosition() == stack_top_position)
+        if (stack_stepper.getCurrentPositionDistance() > stack_bottom_position)
+        {
             stack_stepper.moveToDistance(stack_bottom_position);
+        }
         else
-            stack_stepper.moveToDistance(stack_top_position + 14.0);
-        stack_stepper.setAcceleration(stack_low_acceleration);
+        {
+            stack_stepper.moveToDistance(stack_top_position - 14.0);
+        }
     }
 
     if (cmd_btns == 3)

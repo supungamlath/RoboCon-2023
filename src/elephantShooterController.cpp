@@ -243,9 +243,9 @@ void calculatePresetMotion()
     {
         stack_stepper.setAcceleration(stack_rapid_acceleration);
         if (stack_stepper.targetPosition() == stack_top_position)
-            stack_stepper.moveTo(stack_bottom_position);
+            stack_stepper.moveToDistance(stack_bottom_position);
         else
-            stack_stepper.moveTo(stack_top_position + 14.0);
+            stack_stepper.moveToDistance(stack_top_position + 14.0);
         stack_stepper.setAcceleration(stack_low_acceleration);
     }
 

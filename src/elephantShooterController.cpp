@@ -76,6 +76,14 @@ void setup()
     pinMode(LoaderLimitSwitchPin, INPUT_PULLUP);
     pinMode(StackLimitSwitchPin, INPUT_PULLUP);
 
+    // Loader initialization
+    loader_stepper.setAcceleration(loader_acceleration);
+    loader_stepper.setMaxSpeed(loader_speed);
+    loader_stepper.setStepsPerRotation(200);
+    loader_stepper.setDistancePerRotation(4.8);
+    attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
+    loader_stepper.runRelative(-100.0);
+
     // Stack Stepper initialization
     stack_stepper.setAcceleration(stack_acceleration);
     stack_stepper.setMaxSpeed(stack_speed);
@@ -83,13 +91,6 @@ void setup()
     stack_stepper.setDistancePerRotation(4.3);
     attachInterrupt(StackLimitSwitchPin, stackLimitHit, FALLING);
     stack_stepper.runRelative(100.0);
-
-    // Loader initialization
-    loader_stepper.setAcceleration(loader_acceleration);
-    loader_stepper.setMaxSpeed(loader_speed);
-    loader_stepper.setStepsPerRotation(200);
-    loader_stepper.setDistancePerRotation(4.8);
-    // attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
 
     // Shooter Adjuster initialization
     shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
@@ -176,10 +177,10 @@ void calculateValues()
     stack_fine_step = 0.001 * l_stick_Y;
 
     // set loader move
-    if (loader_stepper.currentPosition() == loader_stepper.targetPosition())
-        loader_move = left_right_btns;
-    else
-        loader_move = 0;
+    // if (loader_stepper.currentPosition() == loader_stepper.targetPosition())
+    //     loader_move = left_right_btns;
+    // else
+    //     loader_move = 0;
 }
 
 void driveActuators()
@@ -217,14 +218,14 @@ void driveActuators()
     }
 
     // Loader Motor
-    if (loader_move == 1)
-    {
-        loader_stepper.moveToDistance(loader_left_position);
-    }
-    else if (loader_move == -1)
-    {
-        loader_stepper.moveToDistance(loader_right_position);
-    }
+    // if (loader_move == 1)
+    // {
+    //     loader_stepper.moveToDistance(loader_left_position);
+    // }
+    // else if (loader_move == -1)
+    // {
+    //     loader_stepper.moveToDistance(loader_right_position);
+    // }
 
     // Shooter Adjuster Motor
     if (adjuster_move == 1)

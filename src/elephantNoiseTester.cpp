@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <AccelStepperWithDistance.h>
 
+volatile int noise_count = 0;
+
 // Shooter pinouts
 const int LoaderStepPin = 2;
 const int LoaderDirPin = 4;
@@ -110,14 +112,17 @@ void setup()
 void IRAM_ATTR stackLimitHit()
 {
     stack_stepper.setCurrentPosition(0);
+    noise_count++;
 }
 void IRAM_ATTR loaderLimitHit()
 {
     loader_stepper.setCurrentPosition(0);
+    noise_count++;
 }
 void IRAM_ATTR adjusterHitLimit()
 {
     shooter_adjuster_stepper.setCurrentPosition(0);
+    noise_count++;
 }
 
 void loop()
@@ -132,6 +137,7 @@ void loop()
         calculatePresetMotion();
     }
     driveActuators(); // Drive each motor
+    Serial.println(noise_count);
 }
 
 void readValues()

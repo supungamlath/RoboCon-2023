@@ -71,7 +71,12 @@ void calculateValues()
 {
   l_stick_Y = (l_stick_Y < -10 ? l_stick_Y : (l_stick_Y > 10 ? l_stick_Y : 0));
 
-  arm_servo_val += (0.0001 * l_stick_Y);
+  if (l_stick_Y >= 0)
+    arm_servo_val += l_stick_Y;
+  else
+  {
+    arm_servo_val += (0.0001 * l_stick_Y);
+  }
   wrist_servo_val += (0.01 * left_right_btns - 0.00005 * l_stick_Y);
   grip_servo_val += (0.0005 * r_2_value);
   ring_lift_servo_val = map(l_2_value, 0, 255, 0, 180);
@@ -114,7 +119,7 @@ void calculatePresetMotion()
 
 void driveActuators()
 {
-  arm_servo_val = constrain(arm_servo_val, 40, 125);
+  arm_servo_val = constrain(arm_servo_val, 60, 250);
   wrist_servo_val = constrain(wrist_servo_val, 10, 80);
   grip_servo_val = constrain(grip_servo_val, 0, 25);
   ring_lift_servo_val = constrain(ring_lift_servo_val, 0, 170);

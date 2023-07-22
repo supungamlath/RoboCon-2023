@@ -46,7 +46,7 @@ float stack_acceleration = 500;
 
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
-float loader_left_position = 52.0;
+float loader_left_position = 32.0;
 float loader_right_position = 0.0;
 float loader_speed = 800;
 float loader_acceleration = 800;
@@ -82,8 +82,8 @@ void setup()
     loader_stepper.setStepsPerRotation(200);
     loader_stepper.setDistancePerRotation(4.8);
     attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
-    if (digitalRead(LoaderLimitSwitchPin))
-        loader_stepper.moveToDistance(-200.0);
+    // if (digitalRead(LoaderLimitSwitchPin))
+    //     loader_stepper.moveToDistance(-200.0);
 
     // Stack Stepper initialization
     stack_stepper.setAcceleration(stack_acceleration);
@@ -91,8 +91,8 @@ void setup()
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(4.3);
     attachInterrupt(StackLimitSwitchPin, stackLimitHit, FALLING);
-    if (digitalRead(StackLimitSwitchPin))
-        stack_stepper.moveToDistance(100.0);
+    // if (digitalRead(StackLimitSwitchPin))
+    //     stack_stepper.moveToDistance(100.0);
 
     // Shooter Adjuster initialization
     shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
@@ -100,8 +100,8 @@ void setup()
     shooter_adjuster_stepper.setStepsPerRotation(200);
     shooter_adjuster_stepper.setDistancePerRotation(1.0);
     attachInterrupt(ShooterAdjusterLimitSwitchPin, adjusterHitLimit, FALLING);
-    if (digitalRead(ShooterAdjusterLimitSwitchPin))
-        shooter_adjuster_stepper.runToNewDistance(50.0);
+    // if (digitalRead(ShooterAdjusterLimitSwitchPin))
+    //     shooter_adjuster_stepper.runToNewDistance(50.0);
 
     Serial.begin(115200);
     Serial2.begin(115200);
@@ -156,7 +156,7 @@ void calculateFreeMotion()
         if (up_down_btns == 1)
         {
             adjuster_position += -1 * adjuster_step_size;
-            shooter_motor_val = 0.8;
+            shooter_motor_val = 80;
         }
         else if (up_down_btns == -1)
         {

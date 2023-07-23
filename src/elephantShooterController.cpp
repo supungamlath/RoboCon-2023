@@ -5,6 +5,7 @@
 const int LoaderStepPin = 2;
 const int LoaderDirPin = 4;
 const int LoaderLimitSwitchPin = 22;
+const int LoaderAlignLimitSwitchPin = 27;
 const float loader_position_step = 1.0;
 
 // Stack pinouts
@@ -35,7 +36,6 @@ float saved_adjuster_position = 0.0;
 float stack_fine_step = 0.0;
 int loader_move = 0;
 int stack_move = 0;
-long lastMillis = 0;
 
 // Stack Stepper instance - distance
 AccelStepperWithDistance stack_stepper(AccelStepperWithDistance::DRIVER, StackStepPin, StackDirPin);
@@ -75,6 +75,7 @@ void setup()
     pinMode(LoaderLimitSwitchPin, INPUT);
     pinMode(StackLimitSwitchPin, INPUT);
     pinMode(ShooterAdjusterLimitSwitchPin, INPUT);
+    pinMode(LoaderAlignLimitSwitchPin, INPUT);
 
     // Loader initialization
     loader_stepper.setAcceleration(loader_acceleration);
@@ -82,8 +83,8 @@ void setup()
     loader_stepper.setStepsPerRotation(200);
     loader_stepper.setDistancePerRotation(4.8);
     attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
-    // if (digitalRead(LoaderLimitSwitchPin))
-    //     loader_stepper.moveToDistance(-200.0);
+    if (digitalRead(LoaderLimitSwitchPin))
+        loader_stepper.moveToDistance(-200.0);
 
     // Stack Stepper initialization
     stack_stepper.setAcceleration(stack_acceleration);
@@ -91,8 +92,8 @@ void setup()
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(4.3);
     attachInterrupt(StackLimitSwitchPin, stackLimitHit, FALLING);
-    // if (digitalRead(StackLimitSwitchPin))
-    //     stack_stepper.moveToDistance(100.0);
+    if (digitalRead(StackLimitSwitchPin))
+        stack_stepper.moveToDistance(100.0);
 
     // Shooter Adjuster initialization
     shooter_adjuster_stepper.setAcceleration(shooter_adjuster_stepper_acceleration);
@@ -100,8 +101,8 @@ void setup()
     shooter_adjuster_stepper.setStepsPerRotation(200);
     shooter_adjuster_stepper.setDistancePerRotation(1.0);
     attachInterrupt(ShooterAdjusterLimitSwitchPin, adjusterHitLimit, FALLING);
-    // if (digitalRead(ShooterAdjusterLimitSwitchPin))
-    //     shooter_adjuster_stepper.runToNewDistance(50.0);
+    if (digitalRead(ShooterAdjusterLimitSwitchPin))
+        shooter_adjuster_stepper.runToNewDistance(50.0);
 
     Serial.begin(115200);
     Serial2.begin(115200);
@@ -265,10 +266,14 @@ void driveActuators()
     // Loader Motor
     if (loader_move == 1)
     {
+        stack_stepper.moveRelative(-stack_ring_height_step);
         loader_stepper.moveToDistance(loader_left_position);
     }
     else if (loader_move == -1)
     {
+        loader_stepper.setSpeed(100);
+        while (digitalRead(LoaderAlignLimitSwitchPin))
+            loader_stepper.moveToDistance(loader_left_position);
         loader_stepper.moveToDistance(loader_right_position);
     }
 

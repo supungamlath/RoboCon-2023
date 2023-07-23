@@ -1,43 +1,66 @@
 #include <Arduino.h>
 #include <ESP32Servo.h>
+#include <AccelStepperWithDistance.h>
 
-const int RingLiftSeroPin = 15;
+// Servo Pinouts
+const int RingLiftServoPin = 15;
 const int ArmServoPin = 19;
 const int WristServoPin = 18;
 const int GripServoPin = 21;
-const int ArmUpPin = 22;
-const int ArmDownPin = 23;
-const int LimitSwitchTopPin = 25;
-const int LimitSwitchBottomPin = 26;
+
+// Stepper Pinouts
+const int ArmStepperDir = 22;
+const int ArmStepperStep = 23;
+
+// Limit Switch Pinouts
+const int ArmLimitSwitchPin = 26;
 
 int l_stick_Y = 0, up_down_btns = 0, left_right_btns = 0, cmd_btns = 0, l_2_value = 0, r_2_value = 0;
-int arm_motor_speed = 70;
+float arm_stepper_position = 0.0;
 float arm_servo_val = 40.0, wrist_servo_val = 0.0, grip_servo_val = 0.0, ring_lift_servo_val = 0.0;
+
 Servo arm_servo, wrist_servo, grip_servo, ring_lift_servo;
+AccelStepperWithDistance arm_stepper(AccelStepperWithDistance::DRIVER, ArmStepperStep, ArmStepperDir);
+const float arm_top_position = 32.0;
+const float arm_bottom_position = 0.0;
+const float arm_stepper_speed = 800;
+const float arm_stepper_acceleration = 200;
 
 void readValues();
 void calculateValues();
 void calculatePresetMotion();
 void driveActuators();
 float slowIncrement(float, float);
+void IRAM_ATTR armBottomLimitHit();
 
 void setup()
 {
   pinMode(ArmServoPin, OUTPUT);
   pinMode(WristServoPin, OUTPUT);
   pinMode(GripServoPin, OUTPUT);
-  pinMode(RingLiftSeroPin, OUTPUT);
-  pinMode(ArmUpPin, OUTPUT);
-  pinMode(ArmDownPin, OUTPUT);
-  pinMode(LimitSwitchTopPin, INPUT);
-  pinMode(LimitSwitchBottomPin, INPUT);
+  pinMode(RingLiftServoPin, OUTPUT);
+  pinMode(ArmStepperDir, OUTPUT);
+  pinMode(ArmStepperStep, OUTPUT);
+  pinMode(ArmLimitSwitchPin, INPUT);
+
   arm_servo.attach(ArmServoPin);
   wrist_servo.attach(WristServoPin);
   grip_servo.attach(GripServoPin);
-  ring_lift_servo.attach(RingLiftSeroPin);
+  ring_lift_servo.attach(RingLiftServoPin);
+
+  arm_stepper.setAcceleration(arm_stepper_acceleration);
+  arm_stepper.setMaxSpeed(arm_stepper_speed);
+  arm_stepper.setStepsPerRotation(200);
+  arm_stepper.setDistancePerRotation(2.0);
+  attachInterrupt(ArmLimitSwitchPin, armBottomLimitHit, FALLING);
 
   Serial.begin(115200);
   Serial2.begin(115200);
+}
+
+void IRAM_ATTR armBottomLimitHit()
+{
+  arm_stepper.setCurrentPosition(0);
 }
 
 void loop()
@@ -81,18 +104,8 @@ void calculateValues()
   grip_servo_val += (0.0005 * r_2_value);
   ring_lift_servo_val = map(l_2_value, 0, 255, 0, 180);
 
-  if (up_down_btns == 1)
-  {
-    arm_motor_speed = 70;
-  }
-  else if (up_down_btns == -1)
-  {
-    arm_motor_speed = -70;
-  }
-  else
-  {
-    arm_motor_speed = 0;
-  }
+  if (!arm_stepper.isRunning())
+    arm_stepper_position += (up_down_btns * 1.0);
 }
 
 void calculatePresetMotion()
@@ -136,16 +149,8 @@ void driveActuators()
   // Serial.print("\tGrip Servo: ");
   // Serial.println(grip_servo_val);
 
-  if (arm_motor_speed >= 0)
-  {
-    analogWrite(ArmUpPin, arm_motor_speed);
-    analogWrite(ArmDownPin, LOW);
-  }
-  else
-  {
-    analogWrite(ArmUpPin, LOW);
-    analogWrite(ArmDownPin, -arm_motor_speed);
-  }
+  arm_stepper.moveToDistance(arm_stepper_position);
+  arm_stepper.run();
 }
 
 float slowIncrement(float current, float target)

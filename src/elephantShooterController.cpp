@@ -4,20 +4,21 @@
 // Shooter pinouts
 const int LoaderStepPin = 2;
 const int LoaderDirPin = 4;
-const int LoaderLimitSwitchPin = 22;
-const int LoaderAlignLimitSwitchPin = 27;
+const int LoaderLimitSwitchPin = 32;
+const int LoaderAlignLimitSwitchPin = 33;
 const float loader_position_step = 1.0;
 
 // Stack pinouts
 const int StackStepPin = 12;
 const int StackDirPin = 13;
-const int StackLimitSwitchPin = 23;
+const int StackLimitSwitchPin = 35;
 const float stack_ring_height_step = 1.0;
 
 // Shooter Motor
 const int FdShooterMotor = 26;
 const int BkShooterMotor = 25;
 const int ShooterStopLimitPin = 18;
+const int ShooterAngleLimitPin = 22;
 
 // Shooter adjuster
 const int ShooterAdjusterStepPin = 21;
@@ -34,7 +35,7 @@ float loader_position = 0.0;
 float adjuster_position = 0.0;
 float saved_adjuster_position = 0.0;
 float stack_fine_step = 0.0;
-int loader_move = 0;
+int loader_move = 0, loader_move_state = 0;
 int stack_move = 0;
 
 // Stack Stepper instance - distance
@@ -46,8 +47,8 @@ float stack_acceleration = 500;
 
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
-float loader_left_position = 32.0;
-float loader_right_position = 0.0;
+float loader_left_position = 48.0;
+float loader_right_position = 10.0;
 float loader_speed = 800;
 float loader_acceleration = 800;
 
@@ -65,6 +66,7 @@ void driveActuators();
 void IRAM_ATTR stackLimitHit();
 void IRAM_ATTR loaderLimitHit();
 void IRAM_ATTR adjusterHitLimit();
+void IRAM_ATTR loaderAlignLimitHit();
 
 void setup()
 {
@@ -72,17 +74,19 @@ void setup()
     pinMode(FdShooterMotor, OUTPUT);
     pinMode(BkShooterMotor, OUTPUT);
     pinMode(ShooterStopLimitPin, INPUT);
+    pinMode(ShooterAngleLimitPin, INPUT);
     pinMode(LoaderLimitSwitchPin, INPUT);
+    pinMode(LoaderAlignLimitSwitchPin, INPUT);
     pinMode(StackLimitSwitchPin, INPUT);
     pinMode(ShooterAdjusterLimitSwitchPin, INPUT);
-    pinMode(LoaderAlignLimitSwitchPin, INPUT);
 
     // Loader initialization
     loader_stepper.setAcceleration(loader_acceleration);
     loader_stepper.setMaxSpeed(loader_speed);
     loader_stepper.setStepsPerRotation(200);
     loader_stepper.setDistancePerRotation(4.8);
-    attachInterrupt(LoaderLimitSwitchPin, loaderLimitHit, FALLING);
+    attachInterrupt(digitalPinToInterrupt(LoaderAlignLimitSwitchPin), loaderAlignLimitHit, FALLING);
+    attachInterrupt(digitalPinToInterrupt(LoaderLimitSwitchPin), loaderLimitHit, FALLING);
     if (digitalRead(LoaderLimitSwitchPin))
         loader_stepper.moveToDistance(-200.0);
 
@@ -91,7 +95,7 @@ void setup()
     stack_stepper.setMaxSpeed(stack_speed);
     stack_stepper.setStepsPerRotation(200);
     stack_stepper.setDistancePerRotation(4.3);
-    attachInterrupt(StackLimitSwitchPin, stackLimitHit, FALLING);
+    attachInterrupt(digitalPinToInterrupt(StackLimitSwitchPin), stackLimitHit, FALLING);
     if (digitalRead(StackLimitSwitchPin))
         stack_stepper.moveToDistance(100.0);
 
@@ -100,7 +104,7 @@ void setup()
     shooter_adjuster_stepper.setMaxSpeed(shooter_adjuster_stepper_speed);
     shooter_adjuster_stepper.setStepsPerRotation(200);
     shooter_adjuster_stepper.setDistancePerRotation(1.0);
-    attachInterrupt(ShooterAdjusterLimitSwitchPin, adjusterHitLimit, FALLING);
+    attachInterrupt(digitalPinToInterrupt(ShooterAdjusterLimitSwitchPin), adjusterHitLimit, FALLING);
     if (digitalRead(ShooterAdjusterLimitSwitchPin))
         shooter_adjuster_stepper.runToNewDistance(50.0);
 
@@ -119,6 +123,10 @@ void IRAM_ATTR loaderLimitHit()
 void IRAM_ATTR adjusterHitLimit()
 {
     shooter_adjuster_stepper.setCurrentPosition(0);
+}
+void IRAM_ATTR loaderAlignLimitHit()
+{
+    loader_move_state = 1;
 }
 
 void loop()
@@ -156,8 +164,7 @@ void calculateFreeMotion()
     {
         if (up_down_btns == 1)
         {
-            adjuster_position += -1 * adjuster_step_size;
-            shooter_motor_val = 80;
+            adjuster_position -= adjuster_step_size;
         }
         else if (up_down_btns == -1)
         {
@@ -271,16 +278,26 @@ void driveActuators()
     }
     else if (loader_move == -1)
     {
-        loader_stepper.setSpeed(100);
-        while (digitalRead(LoaderAlignLimitSwitchPin))
-            loader_stepper.moveToDistance(loader_left_position);
-        loader_stepper.moveToDistance(loader_right_position);
+        loader_stepper.moveRelative(-loader_position_step);
     }
 
     // Shooter Adjuster Motor
     if (up_down_btns != 0)
     {
         shooter_adjuster_stepper.moveToDistance(adjuster_position);
+    }
+
+    // Align loader
+    if (loader_move_state == 1)
+    {
+        if (loader_stepper.getCurrentPositionDistance() > loader_right_position)
+            loader_stepper.moveToDistance(loader_right_position);
+        else
+        {
+            stack_stepper.moveRelative(-stack_ring_height_step);
+            loader_stepper.moveToDistance(loader_left_position);
+            loader_move_state = 0;
+        }
     }
 
     stack_stepper.run();

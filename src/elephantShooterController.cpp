@@ -1,5 +1,14 @@
 #include <Arduino.h>
 #include <AccelStepperWithDistance.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+
+// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 // Shooter pinouts
 const int LoaderStepPin = 2;
@@ -58,10 +67,13 @@ float shooter_adjuster_stepper_bottom_position = 0.0;
 float shooter_adjuster_stepper_speed = 500;
 float shooter_adjuster_stepper_acceleration = 500;
 
+long current_time = 0, prev_time = 0;
+
 void readValues();
 void calculateFreeMotion();
 void calculatePresetMotion();
 void driveActuators();
+void debug();
 void IRAM_ATTR stackLimitHit();
 void IRAM_ATTR loaderLimitHit();
 void IRAM_ATTR adjusterHitLimit();
@@ -106,6 +118,23 @@ void setup()
 
     Serial.begin(115200);
     Serial2.begin(115200);
+
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
+    { // Address 0x3D for 128x64
+        Serial.println(F("SSD1306 allocation failed"));
+        for (;;)
+            ;
+    }
+
+    delay(500);
+    display.clearDisplay();
+    display.setTextSize(1.2);
+    display.setTextColor(WHITE);
+    display.setCursor(0, 10);
+    // Display static text
+    display.println("Elephant Robot V2.0");
+    display.display();
+    delay(2000);
 }
 
 void IRAM_ATTR stackLimitHit()
@@ -133,6 +162,8 @@ void loop()
         calculatePresetMotion();
     }
     driveActuators(); // Drive each motor
+
+    debug();
 }
 
 void readValues()
@@ -286,4 +317,23 @@ void driveActuators()
     stack_stepper.run();
     loader_stepper.run();
     shooter_adjuster_stepper.run();
+}
+
+void debug()
+{
+    // Runs every 20ms
+    current_time = millis();
+    if (current_time - prev_time > 500)
+    {
+        display.clearDisplay();
+        display.setCursor(0, 0);
+        display.print("Loader: ");
+        display.println(loader_stepper.currentPosition());
+        display.print("Stack: ");
+        display.println(stack_stepper.currentPosition());
+        display.print("Adjuster: ");
+        display.println(shooter_adjuster_stepper.currentPosition());
+        display.display();
+        prev_time = current_time;
+    }
 }

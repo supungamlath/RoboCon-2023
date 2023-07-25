@@ -130,7 +130,7 @@ void setup()
             ;
     }
 
-    delay(500);
+    delay(2000);
     display.clearDisplay();
     display.setTextSize(1.2);
     display.setTextColor(WHITE);
@@ -138,7 +138,7 @@ void setup()
     // Display static text
     display.println("Elephant Robot V2.0");
     display.display();
-    delay(2000);
+    delay(1000);
 }
 
 void IRAM_ATTR stackLimitHit()

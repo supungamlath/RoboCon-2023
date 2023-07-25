@@ -186,6 +186,8 @@ void SendValuesToArm()
   Serial2.println(PS4.L2Value());
   Serial2.println(PS4.R2Value());
   Serial2.println(PS4.LStickY());
+  int l1_r1_btns = (PS4.L1() == 1 ? 1 : (PS4.R1() == 1 ? -1 : 0));
+  Serial2.println(l1_r1_btns);
   int up_down_btns = (PS4.Up() == 1 ? 1 : (PS4.Down() == 1 ? -1 : 0));
   Serial2.println(up_down_btns);
   int left_right_btns = (PS4.Left() == 1 ? 1 : (PS4.Right() == 1 ? -1 : 0));

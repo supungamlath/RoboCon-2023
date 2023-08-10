@@ -57,7 +57,7 @@ float stack_acceleration = 500;
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
 float loader_left_position = 48.0;
-float loader_right_position = 10.0;
+float loader_right_position = 2.0;
 float loader_speed = 800;
 float loader_acceleration = 800;
 
@@ -345,11 +345,11 @@ void debug()
         display.clearDisplay();
         display.setCursor(0, 0);
         display.print("Loader: ");
-        display.println(loader_stepper.currentPosition());
+        display.println(loader_stepper.getCurrentPositionDistance());
         display.print("Stack: ");
-        display.println(stack_stepper.currentPosition());
+        display.println(stack_stepper.getCurrentPositionDistance());
         display.print("Adjuster: ");
-        display.println(shooter_adjuster_stepper.currentPosition());
+        display.println(shooter_adjuster_stepper.getCurrentPositionDistance());
         display.display();
         prev_time = current_time;
     }

@@ -112,10 +112,10 @@ void CalculateMotorSpeeds()
     // m2_pow = 2 * (x + y);
     // m3_pow = 2 * (x - y);
     // m4_pow = 2 * (x + y);
-    m1_pow = 2 * (y - x - z);
-    m2_pow = 2 * (y + x + z);
-    m3_pow = 2 * (y + x - z);
-    m4_pow = 2 * (y - x + z);
+    m1_pow = 2 * (y + x - z);
+    m2_pow = 2 * (y - x + z);
+    m3_pow = 2 * (y - x - z);
+    m4_pow = 2 * (y + x + z);
     m1_pow = constrain(m1_pow, -255, 255);
     m2_pow = constrain(m2_pow, -255, 255);
     m3_pow = constrain(m3_pow, -255, 255);

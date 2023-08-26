@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include <ESP32Servo.h>
+#include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_I2CDevice.h>
 #include <AccelStepperWithDistance.h>
 
 // Servo Pinouts
@@ -106,7 +109,7 @@ void calculateValues()
   //   arm_servo_val += (0.0001 * l_stick_Y);
   // }
 
-  grip_servo_val = map(r_2_value, 0, 127, 0, 40);
+  grip_servo_val = map(r_2_value, 0, 127, 150, 0);
   ring_lift_servo_val = map(l_2_value, 0, 127, 0, 180);
 
   if (!arm_stepper.isRunning())
@@ -169,7 +172,7 @@ void calculatePresetMotion()
 void driveActuators()
 {
   arm_servo_val = constrain(arm_servo_val, 0, 270);
-  grip_servo_val = constrain(grip_servo_val, 0, 40);
+  grip_servo_val = constrain(grip_servo_val, 0, 150);
   wrist_servo_val = constrain(wrist_servo_val, 0, 180);
   ring_lift_servo_val = constrain(ring_lift_servo_val, 0, 170);
 
@@ -182,8 +185,8 @@ void driveActuators()
   // Serial.print(arm_servo_val);
   // Serial.print("\tWrist Servo: ");
   // Serial.print(wrist_servo_val);
-  // Serial.print("\tGrip Servo: ");
-  // Serial.println(grip_servo_val);
+  Serial.print("\tGrip Servo: ");
+  Serial.println(grip_servo_val);
 
   arm_stepper.moveToDistance(arm_stepper_position);
   arm_stepper.run();

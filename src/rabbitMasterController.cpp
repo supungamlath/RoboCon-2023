@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include <PS4Controller.h>
+#include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_I2CDevice.h>
 #include <esp_bt_main.h>
 #include <esp_bt_device.h>
 #include "esp_gap_bt_api.h"

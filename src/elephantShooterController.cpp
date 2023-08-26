@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <AccelStepperWithDistance.h>
 #include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_I2CDevice.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
@@ -57,7 +59,7 @@ float stack_acceleration = 500;
 // Stack loader stepper
 AccelStepperWithDistance loader_stepper(AccelStepperWithDistance::DRIVER, LoaderStepPin, LoaderDirPin);
 float loader_left_position = 48.0;
-float loader_right_position = 10.0;
+float loader_right_position = 2.0;
 float loader_speed = 800;
 float loader_acceleration = 800;
 
@@ -130,7 +132,7 @@ void setup()
             ;
     }
 
-    delay(500);
+    delay(2000);
     display.clearDisplay();
     display.setTextSize(1.2);
     display.setTextColor(WHITE);
@@ -138,7 +140,7 @@ void setup()
     // Display static text
     display.println("Elephant Robot V2.0");
     display.display();
-    delay(2000);
+    delay(1000);
 }
 
 void IRAM_ATTR stackLimitHit()
@@ -345,11 +347,11 @@ void debug()
         display.clearDisplay();
         display.setCursor(0, 0);
         display.print("Loader: ");
-        display.println(loader_stepper.currentPosition());
+        display.println(loader_stepper.getCurrentPositionDistance());
         display.print("Stack: ");
-        display.println(stack_stepper.currentPosition());
+        display.println(stack_stepper.getCurrentPositionDistance());
         display.print("Adjuster: ");
-        display.println(shooter_adjuster_stepper.currentPosition());
+        display.println(shooter_adjuster_stepper.getCurrentPositionDistance());
         display.display();
         prev_time = current_time;
     }

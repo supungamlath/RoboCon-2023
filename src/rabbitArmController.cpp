@@ -9,17 +9,18 @@ const int WristServoPin = 18;
 const int GripServoPin = 21;
 
 // Stepper Pinouts
-const int ArmStepperDir = 26;
-const int ArmStepperStep = 27;
+const int ArmStepperDir = 22;
+const int ArmStepperStep = 23;
+
+const int wristUpPin = 27;
+const int wristDownPin = 26;
 
 // Limit Switch Pinouts
-const int ArmLimitSwitchPin = 23;
-
 int l_stick_Y = 0, l1_r1_btns = 0, up_down_btns = 0, left_right_btns = 0, cmd_btns = 0, l_2_value = 0, r_2_value = 0;
 float arm_stepper_position = 0.0;
-float arm_servo_val = 0.0, wrist_servo_val = 0.0, grip_servo_val = 0.0, ring_lift_servo_val = 0.0;
+float arm_servo_val = 0.0, grip_servo_val = 0.0, wrist_servo_val = 0.0, ring_lift_servo_val = 0.0;
 
-Servo arm_servo, wrist_servo, grip_servo, ring_lift_servo;
+Servo arm_servo, grip_servo, wrist_servo, ring_lift_servo;
 AccelStepperWithDistance arm_stepper(AccelStepperWithDistance::DRIVER, ArmStepperStep, ArmStepperDir);
 const float arm_top_position = 230.0; // 250 mm
 const float arm_bottom_position = 0.0;
@@ -36,23 +37,22 @@ void IRAM_ATTR armBottomLimitHit();
 void setup()
 {
   pinMode(ArmServoPin, OUTPUT);
-  pinMode(WristServoPin, OUTPUT);
   pinMode(GripServoPin, OUTPUT);
   pinMode(RingLiftServoPin, OUTPUT);
   pinMode(ArmStepperDir, OUTPUT);
   pinMode(ArmStepperStep, OUTPUT);
-  pinMode(ArmLimitSwitchPin, INPUT);
+  pinMode(wristDownPin, OUTPUT);
+  pinMode(wristUpPin, OUTPUT);
 
   arm_servo.attach(ArmServoPin);
-  wrist_servo.attach(WristServoPin);
   grip_servo.attach(GripServoPin);
+  wrist_servo.attach(WristServoPin);
   ring_lift_servo.attach(RingLiftServoPin);
 
   arm_stepper.setAcceleration(arm_stepper_acceleration);
   arm_stepper.setMaxSpeed(arm_stepper_speed);
   arm_stepper.setStepsPerRotation(400);
   arm_stepper.setDistancePerRotation(8.0);
-  attachInterrupt(ArmLimitSwitchPin, armBottomLimitHit, FALLING);
 
   Serial.begin(115200);
   Serial2.begin(115200);
@@ -95,7 +95,10 @@ void calculateValues()
 {
   l_stick_Y = (l_stick_Y < -10 ? l_stick_Y : (l_stick_Y > 10 ? l_stick_Y : 0));
 
-  arm_servo_val = map(l_stick_Y, -127, 127, 0, 220);
+  // arm_servo_val = map(l_stick_Y, -127, 127, 0, 220);
+  arm_servo_val += 0.0001 * l_stick_Y;
+  wrist_servo_val += 0.1 * l1_r1_btns;
+
   // if (l_stick_Y >= 0)
   //   arm_servo_val += l_stick_Y;
   // else
@@ -103,18 +106,16 @@ void calculateValues()
   //   arm_servo_val += (0.0001 * l_stick_Y);
   // }
 
-  // wrist_servo_val += (0.01 * left_right_btns - 0.00005 * l_stick_Y);
-  wrist_servo_val += (0.05 * left_right_btns);
-  grip_servo_val = map(r_2_value, 0, 255, 25, 0);
-  ring_lift_servo_val = map(l_2_value, 0, 255, 0, 180);
+  grip_servo_val = map(r_2_value, 0, 127, 0, 40);
+  ring_lift_servo_val = map(l_2_value, 0, 127, 0, 180);
 
   if (!arm_stepper.isRunning())
     arm_stepper_position += (up_down_btns * 10.0);
 
-  if (l1_r1_btns == -1)
-    arm_stepper_position = arm_top_position;
-  else if (l1_r1_btns == 1)
-    arm_stepper_position = arm_bottom_position;
+  // if (left_right_btns == -1)
+  // arm_stepper_position = arm_top_position;
+  // else if (left_right_btns == 1)
+  // arm_stepper_position = arm_bottom_position;
 }
 
 float slowIncrement(float current, float target, float speed = 0.005)
@@ -135,43 +136,46 @@ void calculatePresetMotion()
   if (cmd_btns == 1)
   {
     arm_servo_val = slowIncrement(arm_servo_val, 40.0);
-    wrist_servo_val = slowIncrement(wrist_servo_val, 37.0);
     grip_servo_val = slowIncrement(grip_servo_val, 25.0);
   }
   else if (cmd_btns == 2)
   {
     arm_servo_val = slowIncrement(arm_servo_val, 125.0);
-    wrist_servo_val = slowIncrement(wrist_servo_val, 10.0);
     grip_servo_val = slowIncrement(grip_servo_val, 0.0);
   }
   else if (cmd_btns == 3)
   {
     arm_servo_val = slowIncrement(arm_servo_val, 125.0);
-    wrist_servo_val = slowIncrement(wrist_servo_val, 65.0);
     grip_servo_val = slowIncrement(grip_servo_val, 0.0);
   }
   else if (cmd_btns == 4)
   {
-    arm_servo_val = 120.0;
-    wrist_servo_val = 0.0;
+    arm_servo_val = 90.0;
     grip_servo_val = 0.0;
+    grip_servo.write(grip_servo_val);
 
-    arm_servo.write(100);
-    wrist_servo.write(0);
-    grip_servo.write(0);
+    digitalWrite(wristUpPin, HIGH);
+    digitalWrite(wristDownPin, LOW);
+
+    delay(40);
+    grip_servo_val = 25.0;
+    grip_servo.write(grip_servo_val);
+
+    digitalWrite(wristUpPin, HIGH);
+    digitalWrite(wristDownPin, HIGH);
   }
 }
 
 void driveActuators()
 {
   arm_servo_val = constrain(arm_servo_val, 0, 270);
-  wrist_servo_val = constrain(wrist_servo_val, 0, 80);
-  grip_servo_val = constrain(grip_servo_val, 0, 25);
+  grip_servo_val = constrain(grip_servo_val, 0, 40);
+  wrist_servo_val = constrain(wrist_servo_val, 0, 180);
   ring_lift_servo_val = constrain(ring_lift_servo_val, 0, 170);
 
   arm_servo.write(arm_servo_val);
-  wrist_servo.write(wrist_servo_val);
   grip_servo.write(grip_servo_val);
+  wrist_servo.write(wrist_servo_val);
   ring_lift_servo.write(ring_lift_servo_val);
 
   // Serial.print("Arm Servo: ");

@@ -20,8 +20,8 @@ A linear rail is mounted with 2 traveller where one traveller pulls the loading 
 A Kinect camera is used to get the depth image of the target and the rings. The depth image is processed to get the distance of the target and the rings. The distance of the target is used to control the shooting mechanism and the distance of the rings is used to control the loading mechanism. The processing is done using a Raspberry PI 3B board and it communicates using Serial communication to the ESP32 controller that controls the linear actuator.
 
 ### Targetting system workflow
--[X] Setting up the power circuit to power up the Kinect camera and the Raspberry PI 3B board
--[X] Setting up the Raspberry PI 3B board with the required libraries
--[] Coding the image processing algorithm to identify the poles and calculate the distance to those rings using the feed of the Kinect camera
--[] Setting up the serial communication between the Raspberry PI 3B board and the ESP32 controller
--[] Programming the ESP32 controller to control the linear actuator based on the distance calculated by the Raspberry PI 3B board
+- [X] Setting up the power circuit to power up the Kinect camera and the Raspberry PI 3B board
+- [X] Setting up the Raspberry PI 3B board with the required libraries
+- [ ] Coding the image processing algorithm to identify the poles and calculate the distance to those rings using the feed of the Kinect camera
+- [ ] Setting up the serial communication between the Raspberry PI 3B board and the ESP32 controller
+- [ ] Programming the ESP32 controller to control the linear actuator based on the distance calculated by the Raspberry PI 3B board
